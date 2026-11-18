@@ -1,0 +1,49 @@
+name: Validate and merge FitLog implementation docs
+
+on:
+  repository_dispatch:
+    types: [fitlog-code-merged]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  sync:
+    if: >-
+      github.repository == 'pby1360/fitlog-v2-docs' &&
+      (github.event.client_payload.code_repository == 'pby1360/fitlog-v2-server' ||
+       github.event.client_payload.code_repository == 'pby1360/fitlog-v2-web')
+    concurrency:
+      group: fitlog-docs-sync-${{ github.event.client_payload.code_repository }}-${{ github.event.client_payload.code_number }}
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the trusted docs revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Create read-only code token
+        id: code
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+        with:
+          app-id: ${{ vars.FITLOG_DOCS_READ_APP_ID }}
+          private-key: ${{ secrets.FITLOG_DOCS_READ_APP_PRIVATE_KEY }}
+          owner: pby1360
+          repositories: ${{ github.event.client_payload.code_repository == 'pby1360/fitlog-v2-web' && 'fitlog-v2-web' || 'fitlog-v2-server' }}
+          permission-contents: read
+          permission-pull-requests: read
+
+      - name: Install validation tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/fitlog-docs-sync"
+          "$RUNNER_TEMP/fitlog-docs-sync/bin/python" -m pip install -r scripts/docs-sync-requirements.txt
+
+      - name: Verify sources and merge the validated docs commit
+        env:
+          DOCS_TOKEN: ${{ github.token }}
+          CODE_TOKEN: ${{ steps.code.outputs.token }}
+        run: |
+          "$RUNNER_TEMP/fitlog-docs-sync/bin/python" scripts/docs_sync.py
