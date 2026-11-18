@@ -1,12 +1,12 @@
 # 현재 구현 및 검증 상태
 
-2026-11-18 기준 서버와 웹의 원격 `main`은 문서 이관 당시와 같은 커밋이다. 이번 검증에서 서버 테스트 91개, 웹 타입 검사·빌드와 주요 화면의 로컬 동작을 확인했다. **v1 정식 출시는 확인 필요, v2 스쿼트 프로토타입은 미구현**이다. 출시 판정은 [DoD-1과 DoD-2](../product/RELEASE_CRITERIA.md)를 따른다.
+2026-11-19 웹 main에서 V1-04 코드 병합을 확인했다. 캘린더 수용 기준은 로컬 Playwright 12개를 통과했다. 운영 배포와 실제 데이터 검증은 확인 대기다. 출시 판정은 [DoD-1과 DoD-2](../product/RELEASE_CRITERIA.md)를 따른다.
 
 | 저장소 | 원격 `main` 기준 |
 | --- | --- |
 | 문서 | [`06977e2`](https://github.com/pby1360/fitlog-v2-docs/tree/06977e26bfbf24536f784d7600369b0e58c06e83), 최초 이관 PR #1 병합 |
-| 서버 | [`1154a06`](https://github.com/pby1360/fitlog-v2-server/tree/1154a06268b0336ab5154c9c2c0d8b405bad8717) |
-| 웹 | [`3d6412e`](https://github.com/pby1360/fitlog-v2-web/tree/3d6412ec605ed6f83f86b1e51d6b740df9db25d2) |
+| 서버 | [`52d93f3`](https://github.com/pby1360/fitlog-v2-server/tree/52d93f30add026b59fc7e48f591937e0a54bbe23), 개발 지침 병합. 런타임 검사 기준은 `1154a06`. |
+| 웹 | [`6f8cc4c`](https://github.com/pby1360/fitlog-v2-web/tree/6f8cc4c930bb8872cfc4ada71d2efabbbbf274e1), [웹 PR #40](https://github.com/pby1360/fitlog-v2-web/pull/40) 병합 |
 
 | 판정 | 기준 |
 | --- | --- |
@@ -28,8 +28,8 @@
 | C-1 프로그램으로 세션 시작 | 구현 완료 | 시작 전 구성 편집과 프로그램 복사 경로가 있다. 서버 테스트에서 회원당 활성 세션 1개 및 기존 세션 조회를 확인했다. [웹 시작](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/src/pages/workout/page.tsx#L106-L142), [서버 시작](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/main/java/com/fitlog/fitlogv2server/domain/workoutsession/service/WorkoutSessionService.java#L50-L115), [세션 테스트](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/test/java/com/fitlog/fitlogv2server/domain/workoutsession/WorkoutSessionIntegrationTest.java) |
 | C-2 세트 기록과 자동 휴식 | 구현 완료 | 실측 무게·횟수 저장 후 미완료 세션에 휴식 타이머를 시작한다. 일시정지·재개 시간 제외는 서버 테스트로 확인했다. 물리 모바일 기기에서의 타이머 검증은 [V1-02](BACKLOG.md#p0)로 남긴다. [웹 세트·타이머](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/src/pages/workout/session/page.tsx#L501-L530), [시간 계산 테스트](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/test/java/com/fitlog/fitlogv2server/domain/workoutsession/entity/WorkoutSessionTest.java) |
 | C-3 세션 완료 저장 | 구현 완료 | 모든 세트를 처리하면 서버가 완료 상태를 기록한다. 서버 통합 테스트가 마지막 세트 이후 완료 및 백분율을 확인한다. [세션 서비스](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/main/java/com/fitlog/fitlogv2server/domain/workoutsession/service/WorkoutSessionService.java#L123-L138), [완료 통합 테스트](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/test/java/com/fitlog/fitlogv2server/domain/workoutsession/WorkoutSessionIntegrationTest.java#L143-L174) |
-| D-1 월간 캘린더 | 일부 구현 | 선택 월의 완료 기록이 표시되지만 늦은 응답에 표시가 덮이고, 상세에서 ‘캘린더로’를 누르면 목록으로 이동했다. 기기 시간대가 KST와 다른 월 경계에서도 초기 월이 어긋났다. [V1-04](BACKLOG.md#p1)에서 추적한다. [월 요청](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/src/pages/history/page.tsx#L68-L108), [월/복귀 조작](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/src/pages/history/page.tsx#L144-L176) |
-| D-2 날짜별 기록 및 세트 상세 | 일부 구현 | 목록과 상세 API는 연결됐고, 로컬 브라우저에서 캘린더의 기록을 열어 종목 상세를 확인했다. 캘린더는 월의 첫 200개를 조회하며 한 날짜에 두 기록만 열 수 있다. 나머지는 목록에서 찾을 수 있다. [캘린더 셀](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/src/pages/history/page.tsx#L297-L334), [일지 API](../api/README.md#운동-세션일지-및-대시보드), [V1-04](BACKLOG.md#p1) |
+| D-1 월간 캘린더 | 구현 완료 | 최신 월 응답만 반영하고 상세에서 복귀할 때 월을 유지한다. UTC 브라우저의 KST 월·연도 경계, 오늘 강조, 윤년을 검증했다. [일지 UI](https://github.com/pby1360/fitlog-v2-web/blob/6f8cc4c930bb8872cfc4ada71d2efabbbbf274e1/src/pages/history/page.tsx), [회귀 테스트](https://github.com/pby1360/fitlog-v2-web/blob/6f8cc4c930bb8872cfc4ada71d2efabbbbf274e1/tests/history-calendar.spec.ts) |
+| D-2 날짜별 기록 및 세트 상세 | 구현 완료 | 월별 페이지의 201번째 기록과 모바일에서 하루 세 번째 기록을 열었다. 빈 결과와 실패 후 재시도 및 목록 필터도 검증했다. [일지 설계](../features/workout-history/TECH_SPEC.md), [회귀 테스트](https://github.com/pby1360/fitlog-v2-web/blob/6f8cc4c930bb8872cfc4ada71d2efabbbbf274e1/tests/history-calendar.spec.ts) |
 | M4 약관·개인정보·탈퇴 | 일부 구현 | 두 정책 페이지와 탈퇴 API/UI 경로가 있다. 서버 통합 테스트에서 탈퇴와 레거시 교차 참조의 409 롤백을 확인했다. 화면의 운영자명·문의처 자리표시자와 운영 검증은 [V1-01·02](BACKLOG.md#p0)에 남는다. [약관](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/src/pages/legal/TermsPage.tsx), [개인정보](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/src/pages/legal/PrivacyPolicyPage.tsx), [탈퇴 테스트](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/test/java/com/fitlog/fitlogv2server/domain/member/MemberWithdrawalIntegrationTest.java) |
 | M5 세션 편집 확장 | 일부 구현 | 시작 전 편집과 진행 중 세트·종목 추가, 남은 종목 순서 변경은 연결됐다. 서버 종목 제거는 통합 테스트가 있으나 웹에서 호출하지 않는다. [V1-09](BACKLOG.md#p2), [웹 세션 편집](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/src/pages/workout/session/page.tsx#L533-L646), [제거 테스트](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/test/java/com/fitlog/fitlogv2server/domain/workoutsession/WorkoutSessionIntegrationTest.java#L89-L107) |
 | M5 무프로그램 시작 | 미구현 | 시작 요청에 본인 프로그램 ID가 필수다. [요청 DTO](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/main/java/com/fitlog/fitlogv2server/domain/workoutsession/dto/WorkoutSessionDto.java#L28-L34), [V1-10](BACKLOG.md#p2) |
@@ -45,6 +45,7 @@
 | 대시보드 평균 완료율 1% | 저장소 비율을 서비스에서 백분율로 한 번 변환한다. 분모 0을 제외하는 집계 정책은 [V1-12](BACKLOG.md#p2)에서 확인한다. [집계 쿼리](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/main/java/com/fitlog/fitlogv2server/domain/workoutsession/repository/WorkoutSessionRepository.java#L109-L123), [백분율 변환](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/main/java/com/fitlog/fitlogv2server/domain/dashboard/service/DashboardService.java#L69-L77) |
 | 법적 링크·탈퇴 API·입력 검증·헬스체크 부재 | 사이트 내 링크와 탈퇴 경로, 핵심 DTO 제약, Actuator 헬스체크와 요청 ID가 추가됐다. 실제 공개 문구와 관측 운영은 P0으로 남긴다. [웹 PR #26](https://github.com/pby1360/fitlog-v2-web/pull/26), [서버 PR #28](https://github.com/pby1360/fitlog-v2-server/pull/28), [요청 ID 필터](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/main/java/com/fitlog/fitlogv2server/global/logging/RequestIdFilter.java) |
 | 공유 이미지 파일 누락·템플릿 흔적·미사용 SDK | PNG 로고를 공유 메타데이터에 연결했다. Font Awesome 플레이스홀더·Readdy DNS 조회 및 이전 미사용 SDK는 빠졌다. 공유 전용 1200×630 이미지는 후보로 남는다. [HTML](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/index.html#L28-L43), [의존성](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/package.json) |
+| V1-04 캘린더 응답 경합·복귀·날짜·누락 | 코드 병합 및 로컬 검증 완료. 기준 커밋에서는 최신 월 요청만 반영하고, 선택 월과 일별 전체 기록을 열 수 있다. [변경 이력](../history/2026-11-19.md), [웹 PR #40](https://github.com/pby1360/fitlog-v2-web/pull/40) |
 | 기본 검증·일지 인덱스 부재 | 서버 Gradle 테스트와 웹 린트·타입 검사 잡이 있다. Flyway V3에 회원·상태·시작 시각 인덱스가 있다. 실제 운영 배포와 쿼리 성능은 별도 확인한다. [서버 CI](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/.github/workflows/deploy.yml), [웹 CI](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/.github/workflows/deploy.yml), [V3](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/main/resources/db/migration/V3__workout_session_integrity.sql#L65-L70) |
 
 React·JPA·배포의 옛 기술 기록과 현재 구성의 차이는 [프런트엔드](../architecture/FRONTEND.md), [백엔드](../architecture/BACKEND.md), [GCP ADR](../decisions/0003-gcp-hosting.md)에 보존했다.
@@ -53,8 +54,7 @@ React·JPA·배포의 옛 기술 기록과 현재 구성의 차이는 [프런트
 
 | 항목 | 관측 및 분류 |
 | --- | --- |
-| 일지 달력 전환·복귀 | **재현.** 11월에서 10월·9월로 이동할 때 10월 응답을 늦추면, 9월에 표시됐던 기록이 사라지고 제목만 9월에 남는다. 상세의 ‘캘린더로’는 목록을 표시했다. UTC 브라우저에서 KST 11월 1일 01:00의 첫 화면은 10월을 열었다. [V1-04](BACKLOG.md#p1), [화면 로직](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/src/pages/history/page.tsx#L24-L108) |
-| 웹 회귀 검증 | **기술 부채.** 웹 PR 잡은 린트와 타입 검사를 수행한다. 번들 빌드는 배포 잡에 있으며 저장소에 웹 테스트 스크립트가 없다. 린트는 훅 의존성 경고 4건을 반환했다. [QUAL-01](BACKLOG.md#p1), [TECH-01](BACKLOG.md#p2), [워크플로](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/.github/workflows/deploy.yml#L16-L82) |
+| 웹 회귀 검증 | **기술 부채.** Playwright가 추가됐다. 기존 PR 검사에는 린트·타입 검사가 있다. Playwright와 번들 빌드의 PR CI 연결은 QUAL-01에 남아 있다. [검사](BACKLOG.md#p1), [웹 테스트](https://github.com/pby1360/fitlog-v2-web/blob/6f8cc4c930bb8872cfc4ada71d2efabbbbf274e1/playwright.config.ts) |
 | 오래된 서버 경로 | **기술 부채.** `SecurityConfig`와 `structure.txt`에 과거 `workoutroutine`이 남아 있다. 현재 컨트롤러는 `workoutsession`이다. [TECH-01](BACKLOG.md#p2), [보안 구성](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/main/java/com/fitlog/fitlogv2server/global/config/SecurityConfig.java#L77-L86), [구조 파일](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/structure.txt#L48) |
 
 ## 확인 필요
@@ -66,13 +66,13 @@ React·JPA·배포의 옛 기술 기록과 현재 구성의 차이는 [프런트
 ## 실행 검증
 
 - 서버는 기준 커밋 복사본에서 Java 21과 로컬 Gradle 캐시로 `./gradlew test --offline --no-daemon`을 실행했다. 17개 테스트 클래스, 91개 통과, 실패·오류·건너뛰기 0개다.
-- 웹은 CI와 같은 Node 20 계열(v20.20.2)에서 `npm ci`, `npm run lint`, `npm run typecheck`, `npm run build`를 실행했다. 타입 검사·빌드는 통과했고 린트는 오류 0건과 훅 의존성 경고 4건이다.
-- 로컬 Chromium과 모의 API로 정책 페이지, 일지 상세 진입, 캘린더 복귀·응답 순서·초기 월을 확인했다. 운영 및 실제 Google·Kakao 인증과 모바일 종단 간 검증은 [백로그](BACKLOG.md#p0)에 남긴다.
+- V1-04는 Node 20.20.2에서 깨끗한 설치, 린트, 타입 검사, 빌드, Playwright 12개를 통과했다. 린트 오류는 0건이고 기존 경고 3건이 남았다. GitHub PR 검사는 통과했다.
+- V1-04 병합 커밋에는 `[skip ci]`가 적용됐다. 이력 갱신 시점에는 운영 배포 성공을 확인하지 못했다. Playwright는 로컬 Chromium·모의 API 검증이며 실제 운영 데이터나 기기는 별도 검증한다. [변경 이력](../history/2026-11-19.md)
 
 | 추적 정보 | 내용 |
 | --- | --- |
 | 문서 상태 | 검토 중 |
 | 원본 출처 | 최초 이관 PR #1, Obsidian `기획.md`·`TECH_SPEC.md`·`TASKS.md`·`ROADMAP.md`, 서버·웹 main과 이번 실행 검증 |
 | 관련 기능 또는 Issue | A-1–E-4, M1–M6, DoD-1·2, [백로그](BACKLOG.md) |
-| 최종 검증일 | 2026-11-18 |
+| 최종 검증일 | 2026-11-19 |
 | 관련 설계 | [기능 목록](../features/README.md), [API 목록](../api/README.md), [시스템 개요](../architecture/SYSTEM_OVERVIEW.md) |

@@ -15,11 +15,11 @@
 
 | 작업 | 현재 근거 또는 선행 조건 | 완료 조건 | 검증 방법 |
 | --- | --- | --- | --- |
-| V1-04 일지 캘린더의 기록 누락·복귀·시간대 | 지연 응답 덮어쓰기, 상세에서 목록으로 복귀, UTC 기기의 월 경계 불일치를 재현했다. 월 첫 200개 조회와 날짜별 2개 노출 제한이 있다. [월 요청·복귀](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/src/pages/history/page.tsx#L68-L176), [날짜 셀](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/src/pages/history/page.tsx#L297-L334) | 제목과 선택 월 기록이 일치하고, 상세에서 캘린더로 돌아올 때 월을 유지한다. 초기 월과 오늘 표시는 KST를 따르며 선택일의 모든 기록을 열 수 있다. 빈 날과 요청 실패가 구별된다. | 브라우저 테스트로 느린 이전 월 응답, 상세 왕복, KST 월 경계의 UTC 환경, 하루 3개·월 200개 초과 데이터, 빈 결과 및 재시도를 검증한다. 기존 목록 API 재사용 여부는 구현 검토에서 정한다. |
+| V1-04 일지 캘린더의 기록 누락·복귀·시간대 | **구현 완료·로컬 검증 완료.** 웹 PR #40이 main에 병합됐고 Playwright 12개가 통과했다. 운영 배포·실데이터 확인은 남아 있다. [웹 PR #40](https://github.com/pby1360/fitlog-v2-web/pull/40), [개발 이력](../history/2026-11-19.md) | 최신 월 응답만 반영하며 상세 왕복 시 월과 목록 필터를 보존한다. KST 경계, 빈 상태·오류 처리, 하루·월의 전체 기록 접근을 제공한다. | 월 응답 순서, 상세 복귀, UTC 월·연도 경계, 윤년, 201건, 하루 3건, 실패 후 재시도 및 목록 회귀를 자동 검증했다. [테스트](https://github.com/pby1360/fitlog-v2-web/blob/6f8cc4c930bb8872cfc4ada71d2efabbbbf274e1/tests/history-calendar.spec.ts) |
 | V1-05 공용 운동 종목 확충 | V2 시드는 종목 23개·부위 7개다. 원래 기획 범위는 50~100개, M5 목표는 80개다. [시드 SQL](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/main/resources/db/migration/V2__seed_master_data.sql), [프로그램 PRD](../features/workout-program/PRD.md) | 승인된 공용 종목 목록과 마이그레이션이 M5의 80개 목표를 충족한다. 목표를 조정할 경우 승인 기록을 연결한다. 승인된 담당자가 실제 운영 수량도 별도 기록한다. | 빈 DB와 이전 시드가 있는 테스트 DB에서 Flyway를 적용한다. 공용 종목 수·중복·부위 및 프로그램 선택 노출을 확인하고 운영 수치는 담당자 기록과 대조한다. |
 | V1-06 가입 후 첫 기록 3분 및 온보딩 | 완성된 프로그램·세션 경로가 있다. 신규 가입자의 프로그램 만들기 유도, 2~3개 분할 프리셋, 실측은 기존 후속 작업이다. [제품 비전](../product/VISION.md), [제품 로드맵](../product/ROADMAP.md) | 승인된 온보딩 범위에서 새 사용자가 가입 후 루틴을 만들고 3분 안에 첫 세트를 저장한다. 목표에 미달한 경우 병목을 기록하고 재측정한다. | 새 계정과 휴대폰으로 가입 완료→첫 세트 저장까지 시간을 재고, 단계별 소요 및 막히는 지점을 남긴다. 출시 기준의 로그인 후 측정 범위도 함께 기록한다. |
 | V1-07 첫 사용자와 v1 출시 판정 | V1-01~03, OPS-01의 출시 전 증거와 V1-06의 첫 사용 결과가 선행한다. [DoD-1](../product/RELEASE_CRITERIA.md#v1-정식-출시-dod-1) | 기존 친분이 없는 가입자 10명 중 5명이 2주 이상 운동을 기록하고, 운영 개입 없이 1주 정상 동작을 포함한 DoD-1의 네 기준을 근거와 함께 충족한다. | 기간·대상 집계 기준과 운영 개입/장애 기록을 대조한다. 관측 대시보드·정책·탈퇴 증거를 함께 검토하고, 요건별 판정 및 사용자 피드백을 남긴다. |
-| QUAL-01 웹 PR 회귀 확인 | 현재 웹 PR 잡에 린트·타입 검사가 있다. 빌드는 배포 잡에만 있고 자동 웹 테스트 스크립트는 없다. [웹 워크플로](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/.github/workflows/deploy.yml#L16-L82), [스크립트](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/package.json#L6-L11) | 배포 없는 PR 잡에서 빌드 산출물과 핵심 흐름 회귀를 검증한다. 도구 선택은 구현 시 결정한다. | 테스트 PR에서 빌드·회귀 체크가 성공하고 의도한 실패에는 PR 체크가 실패하는지 확인한다. 배포 잡 로그가 실행되지 않았는지 검토한다. |
+| QUAL-01 웹 PR 회귀 확인 | 현재 웹 PR 잡에 린트·타입 검사가 있다. 빌드는 배포 잡에 있다. Playwright 테스트가 추가됐으며 PR 검사 연결은 남아 있다. [웹 워크플로](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/.github/workflows/deploy.yml#L16-L82), [스크립트](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/package.json#L6-L11) | 배포 없는 PR 잡에서 빌드 산출물과 핵심 흐름 회귀를 검증한다. 도구 선택은 구현 시 결정한다. | 테스트 PR에서 빌드·회귀 체크가 성공하고 의도한 실패에는 PR 체크가 실패하는지 확인한다. 배포 잡 로그가 실행되지 않았는지 검토한다. |
 | OPS-02 이미지 보존·비용·DB 가용성 | 8월의 2개 보존은 과거 계획이다. 코드 정책은 최근 6개 보존 및 14일 경과 삭제다. [현재 정책](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/artifact-cleanup-policy.json), [배포](../operations/DEPLOYMENT.md) | 실제 정리 설정, 롤백 버전 보존, 예산 경보, 인스턴스·DB 풀 상한, 무료 DB 일시정지 대응이 기록된다. 코드와 운영 설정 차이의 처리 여부를 결정한다. | 승인된 담당자가 설정·보존 버전과 경보 기록을 대조하고, 장애 없이 확인할 수 있는 복구 증거를 남긴다. |
 
 ## P2
@@ -57,5 +57,5 @@
 | 문서 상태 | 검토 중 |
 | 원본 출처 | 최초 이관 PR #1, Obsidian `TASKS.md`·`ROADMAP.md`·`fitlog-v2-MoC.md`, 이번 코드 및 실행 검증 |
 | 관련 기능 또는 Issue | M3–M6, DoD-1·2, [기능 목록](../features/README.md) |
-| 최종 검증일 | 2026-11-18 |
+| 최종 검증일 | 2026-11-19 |
 | 관련 설계 | [현재 상태](CURRENT_STATUS.md), [제품 로드맵](../product/ROADMAP.md), [배포](../operations/DEPLOYMENT.md) |

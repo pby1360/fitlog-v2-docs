@@ -1,0 +1,26 @@
+name: Test the FitLog docs sync validator
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/docs-sync*.yml
+      - scripts/docs_sync.py
+      - scripts/test_docs_sync.py
+      - scripts/docs-sync-requirements.txt
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Run GitHub API fixtures
+        run: |
+          python3 -m venv "$RUNNER_TEMP/fitlog-docs-sync"
+          "$RUNNER_TEMP/fitlog-docs-sync/bin/python" -m pip install -r scripts/docs-sync-requirements.txt
+          "$RUNNER_TEMP/fitlog-docs-sync/bin/python" -m unittest discover -s scripts -v

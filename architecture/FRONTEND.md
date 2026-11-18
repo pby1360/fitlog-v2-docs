@@ -23,12 +23,12 @@ React 19, React Router 7, TypeScript 5.8, Vite 7, Tailwind CSS 3.4, PostCSS, i18
 
 ## 검증과 배포
 
-`npm ci`, `npm run lint`, `npm run typecheck`, `npm run build`를 사용한다. 빌드는 `tsc -b`를 실행한 뒤 Vite가 `out/`을 생성한다. 기준 커밋에서 웹 자동 테스트 스크립트나 테스트 파일은 확인되지 않았다. 배포 및 SPA·PWA 캐시는 [배포](../operations/DEPLOYMENT.md)에서 관리한다.
+`npm ci`, `npm run lint`, `npm run typecheck`, `npm run build`를 사용한다. 빌드는 `tsc -b`를 실행한 뒤 Vite가 `out/`을 생성한다. `npm test`로 Playwright의 Chromium 회귀 테스트를 실행한다. 처음 실행할 때 `npx playwright install chromium`으로 브라우저를 준비한다. V1-04에서는 로컬 Vite와 모의 API를 사용했고 기존 PR 워크플로의 검사 범위는 유지됐다. [테스트 설정](https://github.com/pby1360/fitlog-v2-web/blob/6f8cc4c930bb8872cfc4ada71d2efabbbbf274e1/playwright.config.ts) 배포 및 SPA·PWA 캐시는 [배포](../operations/DEPLOYMENT.md)에서 관리한다.
 
 | 추적 정보 | 내용 |
 | --- | --- |
 | 문서 상태 | 검토 중 |
 | 원본 출처 | Obsidian `TECH_SPEC.md` §3 및 웹 main |
 | 관련 기능 또는 Issue | [계정](../features/account/PRD.md), [운동 프로그램](../features/workout-program/PRD.md), [세션](../features/workout-session/PRD.md), [일지](../features/workout-history/PRD.md) |
-| 최종 검증일 | 2026-11-18 |
+| 최종 검증일 | 2026-11-19 |
 | 관련 설계 | [시스템 개요](SYSTEM_OVERVIEW.md), [API 목록](../api/README.md) |

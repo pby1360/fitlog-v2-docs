@@ -6,7 +6,9 @@
 
 ## 기술 설계
 
-`/history`는 목록, 월간 캘린더, 상세 상태를 갖는다. 목록은 기간과 페이지를, 캘린더는 선택 월의 날짜 범위를 일지 API에 보낸다. `/history/:id`는 해당 기록을 상세 조회한다. 목록의 날짜 문자열과 서버 조회·집계 경계는 `Asia/Seoul`이며 프런트의 `utils/date.ts`와 서버의 `AppTimeZone`이 이 기준을 사용한다. 캘린더의 초기 월과 오늘 강조는 현재 기기의 로컬 날짜를 쓰고, 월별 요청은 첫 200개만 받는다. 달력의 응답 순서와 상세 복귀 문제를 포함한 검증 결과는 [현재 상태](../../status/CURRENT_STATUS.md#버그-및-기술-부채), 완료 조건은 [V1-04](../../status/BACKLOG.md#p1)에 있다.
+`/history`는 목록과 캘린더를 제공하며 `/history/:id`에서 세트 상세를 조회한다. 조회 기간·페이지와 선택 월은 URL에 보존한다. 캘린더에서 상세로 진입해 새로고침해도 같은 월로 돌아온다. 초기 월과 오늘은 `Asia/Seoul`의 날짜를 사용한다. [일지 화면](https://github.com/pby1360/fitlog-v2-web/blob/6f8cc4c930bb8872cfc4ada71d2efabbbbf274e1/src/pages/history/page.tsx), [날짜 유틸리티](https://github.com/pby1360/fitlog-v2-web/blob/6f8cc4c930bb8872cfc4ada71d2efabbbbf274e1/src/utils/date.ts)
+
+캘린더는 기존 일지 API를 월별 날짜 범위와 페이지 크기 200으로 호출한다. 최초 응답의 페이지 수 안에서 이어서 조회하고 운동 ID로 중복을 제거한다. 효과가 종료되면 이전 월의 응답·오류와 후속 페이지 요청을 무시한다. 날짜 칸에 두 개의 미리보기를 보여 주고 더 보기에서 그날의 전체 기록을 연다. 빈 결과, 로딩, 오류 및 재시도를 구분한다.
 
 대시보드는 주간·월간·부위별 통계, 연속일, 최근 운동 및 평균 완료율을 제공한다. 평균 완료율은 세션별 비율을 평균한 값에 서비스에서 백분율 변환을 한 번 적용한다. 분모가 0인 세션은 이 평균에서 제외한다.
 
@@ -24,7 +26,7 @@
 
 ## 테스트 계획
 
-`KstBoundaryIntegrationTest`와 `DashboardServiceTest`로 날짜 경계 및 백분율을 확인한다. 월 이동, 기간 필터, 모바일 상세와 빈 상태는 UI에서 확인한다.
+`KstBoundaryIntegrationTest`와 `DashboardServiceTest`로 날짜 경계 및 백분율을 확인한다. 월 전환 경쟁, 상세 복귀, KST 월·연도 경계와 윤년, 201건·하루 3건, 빈 결과·재시도, 기간 필터를 로컬 Playwright 12개에서 확인했다. 실제 운영 데이터와 운영 배포 상태는 별도 확인 항목이다. [회귀 테스트](https://github.com/pby1360/fitlog-v2-web/blob/6f8cc4c930bb8872cfc4ada71d2efabbbbf274e1/tests/history-calendar.spec.ts)
 
 ## 위험 및 롤백
 
@@ -35,5 +37,5 @@
 | 문서 상태 | 검토 중 |
 | 원본 출처 | Obsidian `기획.md`, `TECH_SPEC.md`, `ROADMAP.md`, `TASKS.md` 및 서버·웹 main |
 | 관련 기능 또는 Issue | D-1–D-2 |
-| 최종 검증일 | 2026-11-18 |
+| 최종 검증일 | 2026-11-19 |
 | 관련 설계 | [데이터 모델](../../architecture/DATA_MODEL.md), [현재 상태](../../status/CURRENT_STATUS.md) |
