@@ -18,7 +18,7 @@ flowchart LR
 
 | 저장소 | 기본 브랜치와 검증 기준 | 주요 구조 |
 | --- | --- | --- |
-| [fitlog-v2-docs](https://github.com/pby1360/fitlog-v2-docs) | 기본 브랜치 설정 `main`. 점검 당시 원격 ref 0개. | [README](../README.md)에서 공식 문서 탐색 |
+| [fitlog-v2-docs](https://github.com/pby1360/fitlog-v2-docs) | `main` · [현황 검증 기준 커밋](../status/CURRENT_STATUS.md) | [README](../README.md)에서 공식 문서 탐색 |
 | [fitlog-v2-server](https://github.com/pby1360/fitlog-v2-server/tree/1154a06268b0336ab5154c9c2c0d8b405bad8717) | `main` · `1154a06` | `src/main`, `src/test`, Gradle, Docker, GitHub Actions |
 | [fitlog-v2-web](https://github.com/pby1360/fitlog-v2-web/tree/3d6412ec605ed6f83f86b1e51d6b740df9db25d2) | `main` · `3d6412e` | `src/`, `public/`, Vite, Firebase Hosting, GitHub Actions |
 
