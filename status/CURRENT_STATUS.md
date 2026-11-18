@@ -4,9 +4,9 @@
 
 | 저장소 | 원격 `main` 기준 |
 | --- | --- |
-| 문서 | [`06977e2`](https://github.com/pby1360/fitlog-v2-docs/tree/06977e26bfbf24536f784d7600369b0e58c06e83), 최초 이관 PR #1 병합 |
-| 서버 | [`52d93f3`](https://github.com/pby1360/fitlog-v2-server/tree/52d93f30add026b59fc7e48f591937e0a54bbe23), 개발 지침 병합. 런타임 검사 기준은 `1154a06`. |
-| 웹 | [`6f8cc4c`](https://github.com/pby1360/fitlog-v2-web/tree/6f8cc4c930bb8872cfc4ada71d2efabbbbf274e1), [웹 PR #40](https://github.com/pby1360/fitlog-v2-web/pull/40) 병합 |
+| 문서 | [`7313dac`](https://github.com/pby1360/fitlog-v2-docs/tree/7313dac365316a773c2890f9f502beb8fcaf9f71), 문서 동기화 설정과 V1-04 기록 병합 |
+| 서버 | [`31cc7eb`](https://github.com/pby1360/fitlog-v2-server/tree/31cc7eb95e4777cb8d73e7aba26d6ff74a7743ca), 문서 동기화 설정 병합. 런타임 검사 기준은 `1154a06`. |
+| 웹 | [`a344499`](https://github.com/pby1360/fitlog-v2-web/tree/a3444992855406dc51ed3a5542f7c3dddd830b42), 문서 동기화 설정 병합. V1-04 검증 기준은 [`6f8cc4c`](https://github.com/pby1360/fitlog-v2-web/tree/6f8cc4c930bb8872cfc4ada71d2efabbbbf274e1). |
 
 | 판정 | 기준 |
 | --- | --- |
@@ -41,7 +41,7 @@
 | --- | --- |
 | `/workout/list/{id}` 수정·삭제 경로 불일치 | 웹과 서버가 `/api/workout/workouts/{id}`를 사용한다. [웹 호출](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/src/services/api.ts#L241-L255), [서버 컨트롤러](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/main/java/com/fitlog/fitlogv2server/domain/workout/controller/WorkoutController.java) |
 | 회원 단위 갱신 토큰과 전화·생년월일 수집 | OAuth 상태, 일회용 교환 코드와 기기별 갱신 세션으로 변경됐다. [인증 ADR](../decisions/0004-oauth-session-redesign.md), [개인정보 ADR](../decisions/0005-member-privacy-and-withdrawal.md) |
-| 캘린더·시작 전 조정·건너뛰기·세션 순서 변경 부재 | 캘린더 화면과 조정·건너뛰기 코드가 있고, 남은 종목 순서 변경은 웹 PR #36으로 연결됐다. 캘린더 결함과 세션 중 종목 제거 UI는 별도 작업이다. [일지 화면](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/src/pages/history/page.tsx), [세션 조정 이슈](https://github.com/pby1360/fitlog-v2-web/issues/8), [웹 PR #36](https://github.com/pby1360/fitlog-v2-web/pull/36) |
+| 캘린더·시작 전 조정·건너뛰기·세션 순서 변경 부재 | 캘린더 화면과 조정·건너뛰기 코드가 있고, 남은 종목 순서 변경은 웹 PR #36으로 연결됐다. 캘린더 수정은 V1-04에서 로컬 검증했고 세션 중 종목 제거 UI는 [V1-09](BACKLOG.md#p2)에 남아 있다. [일지 화면](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/src/pages/history/page.tsx), [세션 조정 이슈](https://github.com/pby1360/fitlog-v2-web/issues/8), [웹 PR #36](https://github.com/pby1360/fitlog-v2-web/pull/36) |
 | 대시보드 평균 완료율 1% | 저장소 비율을 서비스에서 백분율로 한 번 변환한다. 분모 0을 제외하는 집계 정책은 [V1-12](BACKLOG.md#p2)에서 확인한다. [집계 쿼리](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/main/java/com/fitlog/fitlogv2server/domain/workoutsession/repository/WorkoutSessionRepository.java#L109-L123), [백분율 변환](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/main/java/com/fitlog/fitlogv2server/domain/dashboard/service/DashboardService.java#L69-L77) |
 | 법적 링크·탈퇴 API·입력 검증·헬스체크 부재 | 사이트 내 링크와 탈퇴 경로, 핵심 DTO 제약, Actuator 헬스체크와 요청 ID가 추가됐다. 실제 공개 문구와 관측 운영은 P0으로 남긴다. [웹 PR #26](https://github.com/pby1360/fitlog-v2-web/pull/26), [서버 PR #28](https://github.com/pby1360/fitlog-v2-server/pull/28), [요청 ID 필터](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/main/java/com/fitlog/fitlogv2server/global/logging/RequestIdFilter.java) |
 | 공유 이미지 파일 누락·템플릿 흔적·미사용 SDK | PNG 로고를 공유 메타데이터에 연결했다. Font Awesome 플레이스홀더·Readdy DNS 조회 및 이전 미사용 SDK는 빠졌다. 공유 전용 1200×630 이미지는 후보로 남는다. [HTML](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/index.html#L28-L43), [의존성](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/package.json) |
