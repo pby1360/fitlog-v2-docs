@@ -33,6 +33,23 @@
 
 발급 토큰은 사용 저장소 하나와 필요한 권한으로 한정한다. Docs 병합은 Docs 워크플로의 `GITHUB_TOKEN`으로 수행하며 그 저장소의 병합 규칙을 따른다. 코드 저장소의 쓰기 권한을 부여하지 않는다. Docs의 merge-commit 방식이 허용되어야 하고, 브랜치 보호가 추가 사람 리뷰나 별도 체크를 요구하면 GitHub가 자동 병합을 거부한다. 브랜치 보호의 최신 기준 요구는 검증 중 사람이 별도로 Docs main을 병합하는 경우도 막아 준다.
 
+### 2026-11-19 동기화 장애 및 복구
+
+- **FAILED.** 웹 #44의 병합 메시지에서 승인 표시는 인식됐다. 다음 단계인 토큰 발급에서 `[@octokit/auth-app] appId option is required`가 발생했고 Dispatch 단계가 생략됐다. 따라서 이 실행에서 Docs 수신·검증은 시작되지 않았다. Docs #11은 승인된 커밋을 재검증해 수동 병합했다. [웹 실패 실행](https://github.com/pby1360/fitlog-v2-web/actions/runs/44462060315) · [Docs #11](https://github.com/pby1360/fitlog-v2-docs/pull/11)
+- **VERIFIED.** 웹·서버의 발신 잡은 `vars.FITLOG_DOCS_DISPATCH_APP_ID`를 고정 버전 토큰 액션의 `app-id`로 전달한다. 해당 액션은 이 입력을 읽어 Octokit에 전달한다. 실패한 실행에서 유효한 App ID 입력을 받지 못했다는 점은 확인됐다. 변수 자체의 미등록, 조직 정책의 저장소 제외, 잡에 연결되지 않은 Environment 범위 등 실제 설정은 관리자 권한으로 확인한다. [웹 발신 워크플로](https://github.com/pby1360/fitlog-v2-web/blob/4ae88e1333ef1d7d2af2d436f1a8df8ea2c2d5d6/.github/workflows/docs-sync.yml) · [서버 발신 워크플로](https://github.com/pby1360/fitlog-v2-server/blob/6d1c7ba7f227b3b6087e2033b1e74213f25fa708/.github/workflows/docs-sync.yml) · [토큰 액션의 입력 읽기](https://github.com/actions/create-github-app-token/blob/fee1f7d63c2ff003460e3d139729b119787bc349/main.js)
+- **VERIFIED.** 발신 요청과 Docs 워크플로가 모두 `fitlog-code-merged`를 사용한다. payload의 저장소, PR 번호, 병합 SHA를 Docs 검증기가 다시 확인한다. 일반 병합의 발신 워크플로가 성공해도 토큰·Dispatch 단계가 생략됐다면 연동 성공 근거가 없다. [Docs 수신 워크플로](../.github/workflows/docs-sync.yml) · [서버 발신 생략 사례](https://github.com/pby1360/fitlog-v2-server/actions/runs/44450257956)
+- **UNVERIFIED.** 세 저장소의 Actions 변수·Secret 이름 등록 여부, 두 App의 실제 설치·권한, 조직 정책, Docs main 보호와 워크플로 토큰의 병합 권한은 확인할 수 없었다. 연결 도구가 변수·Secret·설치 조회를 지원하지 않았고 branch protection은 403이었다. 기존 GitHub App 설정을 확인할 때까지 워크플로 수정 근거는 없다.
+
+토큰 액션이 고정한 Octokit 8.2.0에서 App ID 누락과 개인 키 누락 메시지를 각각 오프라인에서 재현했다. 두 발신 스크립트의 정상 트레일러, 무승인, PR 제목·본문 삽입 차단과 수신 검증기의 SHA 불일치, 중복 이벤트, 잘못된 저장소·PR 및 HTTP 403 처리를 확인했다. 기존 Docs 동기화 픽스처는 19개가 통과했다.
+
+#### 저장소 관리자 확인
+
+1. GitHub App **Dispatch**를 Docs 저장소에만 설치하고 저장소 권한 `Contents: write`를 부여한다. Web과 Server의 **Settings → Secrets and variables → Actions**에서 각각 **Variables**에 `FITLOG_DOCS_DISPATCH_APP_ID`, **Secrets**에 해당 App의 `FITLOG_DOCS_DISPATCH_APP_PRIVATE_KEY`를 등록한다. GitHub App **App ID**를 사용한다. 조직 항목을 쓴다면 각 저장소가 허용 대상인지 확인한다. 현재 잡에는 `environment`가 없으므로 환경 전용 설정은 전달되지 않는다.
+2. 별도 **Docs Read** App을 Web·Server에만 설치하고 `Contents: read`, `Pull requests: read`를 부여한다. Docs의 Actions 저장소 변수 `FITLOG_DOCS_READ_APP_ID`와 저장소 시크릿 `FITLOG_DOCS_READ_APP_PRIVATE_KEY`를 해당 App과 일치시킨다. Web·Server 코드 저장소의 쓰기 권한은 필요 없다.
+3. Docs에서 merge commit 허용 및 Actions의 `GITHUB_TOKEN`에 요청한 `contents: write`를 허용하는 정책을 확인한다. 보호 규칙의 필수 리뷰, 최신 base, 필수 검사가 자동 병합 경로에서 충족되는지도 확인한다. 로그와 보고에는 설정 이름, 설치 대상, 권한만 남긴다.
+4. 오류가 `privateKey` 입력 누락이면 Secret 등록 범위부터 확인한다. 토큰 발급의 401이면 App ID와 대응하는 키, 403·404이면 발급 또는 Dispatch 단계에서 거부된 저장소·App 설치·권한을 확인한다. Docs 병합 403·405·409이면 Docs 토큰 권한, 보호 규칙, base 및 승인 head를 확인한다. 실패한 요청의 본문이나 자격증명은 증빙에 포함하지 않는다.
+5. 설정 확인 후 별도 승인된 테스트로 발신 토큰 발급, HTTP 204 Dispatch, 수신 검증, 정확한 Docs SHA 병합까지 확인한다. 해당 실험은 비운영 테스트 저장소에서 하며, 운영 코드 PR을 실험용으로 병합하지 않는다. 이미 병합된 Docs #11은 수동 복구 이력으로 보존한다. [검증 절차](DEVELOPMENT_WORKFLOW.md) · [GitHub App 권한](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/choosing-permissions-for-a-github-app)
+
 ## 자동 검사 범위
 
 - 코드의 main 병합 이벤트는 승인 표시가 있는 경우 Docs에 신호를 전송한다. Docs는 신호에 쓰인 코드 PR과 실제 병합 커밋·부모·main 이력을 GitHub에서 재검증한다.
