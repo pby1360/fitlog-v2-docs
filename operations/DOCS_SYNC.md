@@ -50,6 +50,23 @@
 4. 오류가 `privateKey` 입력 누락이면 Secret 등록 범위부터 확인한다. 토큰 발급의 401이면 App ID와 대응하는 키, 403·404이면 발급 또는 Dispatch 단계에서 거부된 저장소·App 설치·권한을 확인한다. Docs 병합 403·405·409이면 Docs 토큰 권한, 보호 규칙, base 및 승인 head를 확인한다. 실패한 요청의 본문이나 자격증명은 증빙에 포함하지 않는다.
 5. 설정 확인 후 별도 승인된 테스트로 발신 토큰 발급, HTTP 204 Dispatch, 수신 검증, 정확한 Docs SHA 병합까지 확인한다. 해당 실험은 비운영 테스트 저장소에서 하며, 운영 코드 PR을 실험용으로 병합하지 않는다. 이미 병합된 Docs #11은 수동 복구 이력으로 보존한다. [검증 절차](DEVELOPMENT_WORKFLOW.md) · [GitHub App 권한](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/choosing-permissions-for-a-github-app)
 
+## DOCS-SYNC-02 후속 검증
+
+| 검증 항목 | 판정과 근거 |
+| --- | --- |
+| Web → Docs 발신·수신 | `VERIFIED`. Web 발신 2회차에서 Dispatch App 발급 및 이벤트 전송, Docs 수신 3회차에서 Read App 발급과 입력 검증이 성공했다. [Web 발신](https://github.com/pby1360/fitlog-v2-web/actions/runs/44462060315/attempts/2) · [Docs 수신](https://github.com/pby1360/fitlog-v2-docs/actions/runs/44508885506/attempts/3) |
+| 기존 병합·중복 처리 | `VERIFIED`. 실제 재실행의 Docs #11은 이미 병합됨을 확인하고 변경 없이 종료했다. 로컬에서는 같은 이벤트를 두 번 전달해 최초 요청만 정확한 SHA로 한 번 병합하는 것을 검증했다. [실행](https://github.com/pby1360/fitlog-v2-docs/actions/runs/44508885506/attempts/3) |
+| Server → Docs 실전 발신 | `UNVERIFIED`. 확인한 서버 실행에서 Dispatch 토큰 발급과 전송이 생략됐다. 승인 트레일러가 있는 기존 병합이나 열린 구현 PR을 찾지 못했다. Server 응답을 모의한 수신 검증은 정확한 Docs SHA로 한 번만 병합을 요청한다. [Server 실행](https://github.com/pby1360/fitlog-v2-server/actions/runs/44450257956) |
+| 신규 Docs PR 실전 병합 | `UNVERIFIED`. Web·Server 양쪽의 승인 근거와 정확한 SHA는 로컬에서 확인했다. 실제 새 PR과 Docs `GITHUB_TOKEN`의 보호 규칙 통과는 다음 승인된 구현 PR에서 확인한다. |
+| 실패·경쟁 조건 | `VERIFIED`(로컬). 승인 누락, PR 본문 승인 토큰, SHA 불일치, PR 없음(404), 인증·권한 오류(401·403), 이미 병합됨, 중복, Docs base 분기 및 검증 도중 main 변경, 제품·정책 파일을 24개 테스트에서 확인했다. [회귀 픽스처](../scripts/test_docs_sync.py) |
+| 토큰 권한 | `VERIFIED`(워크플로 정의). Dispatch 토큰은 Docs 한 저장소의 `Contents: write`, Read 토큰은 해당 코드 저장소 한 곳의 `Contents: read`와 `Pull requests: read`로 요청한다. 실제 App 설치 전체와 Server 토큰 발급은 후속 확인 대상이다. [발신 설정](https://github.com/pby1360/fitlog-v2-server/blob/6d1c7ba7f227b3b6087e2033b1e74213f25fa708/.github/workflows/docs-sync.yml) · [수신 설정](../.github/workflows/docs-sync.yml) |
+
+### 다음 승인된 Server 구현 PR 검증 계획
+
+1. 실제 구현과 문서 근거가 생긴 Server PR을 대상으로 한다. 양쪽 PR의 필수 검사, 배포 분류·영향, Docs 파일 범위와 현재 `main`을 확인한다. 사용자 승인에는 Server PR 병합과 정확한 Docs SHA를 포함한다. 기능 변경의 자동 배포가 예상되면 그 영향도 병합 전에 명시한다.
+2. 같은 코드 PR에 연결된 Docs PR에 Source·Base를 기록하고 검토가 끝난 Docs head를 고정한다. Docs PR을 Ready로 바꾼 뒤, 승인된 Server 병합 커밋의 마지막 문단에 기존 세 트레일러를 넣는다. 권한은 기존 범위로 유지한다.
+3. Server 발신 잡의 토큰 발급·Dispatch, Docs 수신 잡의 Server 토큰 발급·검증·정확한 head 병합 성공, Docs main 반영을 확인한다. 실행 URL과 병합 SHA를 남긴다. 이미 병합된 동일 이벤트는 추가 병합 없이 종료해야 한다. SHA·base가 움직이거나 정책에 막히면 해당 이유를 기록하고 재승인 없이 새 head를 적용하지 않는다.
+
 ## 자동 검사 범위
 
 - 코드의 main 병합 이벤트는 승인 표시가 있는 경우 Docs에 신호를 전송한다. Docs는 신호에 쓰인 코드 PR과 실제 병합 커밋·부모·main 이력을 GitHub에서 재검증한다.
@@ -66,5 +83,5 @@ Docs 브랜치나 main이 바뀌면 검증은 실패한다. 변경을 그대로 
 | 문서 상태 | 검토 중 |
 | 원본 출처 | 문서 자동 동기화 요청 |
 | 관련 기능 또는 Issue | [백로그](../status/BACKLOG.md) |
-| 최종 검증일 | 2026-11-19 |
+| 최종 검증일 | 2026-11-20 |
 | 관련 설계 | [문서 규칙](../AGENTS.md), [시스템 개요](../architecture/SYSTEM_OVERVIEW.md) |

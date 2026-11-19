@@ -3,8 +3,10 @@ import base64
 import random
 import string
 import unittest
+from unittest.mock import Mock, patch
+from urllib.error import HTTPError
 
-from docs_sync import Blocked, DOCS, METADATA, synchronize
+from docs_sync import Blocked, DOCS, GitHub, METADATA, synchronize
 
 
 CODE = "pby1360/fitlog-v2-web"
@@ -42,13 +44,16 @@ class FixtureGitHub:
 
 class SyncTests(unittest.TestCase):
     def setUp(self):
+        self.configure_fixture(CODE, CODE_PATH)
+
+    def configure_fixture(self, repository, code_path):
         self.docs = FixtureGitHub()
         self.code = FixtureGitHub()
-        self.event = {"code_repository": CODE, "code_number": 40, "merge_sha": CODE_MERGE}
+        self.event = {"code_repository": repository, "code_number": 40, "merge_sha": CODE_MERGE}
         self.source = {
             "merged": True, "merge_commit_sha": CODE_MERGE, "changed_files": 1,
             "title": "Implement calendar fix", "body": "Linked Docs PR: #12",
-            "base": {"ref": "main", "repo": {"full_name": CODE}}, "head": {"sha": CODE_HEAD},
+            "base": {"ref": "main", "repo": {"full_name": repository}}, "head": {"sha": CODE_HEAD},
         }
         self.merge_message = {
             "message": "Merge calendar implementation\n\nDocs-Sync-Kind: implementation\n"
@@ -56,25 +61,25 @@ class SyncTests(unittest.TestCase):
             "tree": {"sha": CODE_TREE},
         }
         self.code.responses.update({
-            f"repos/{CODE}/pulls/40": self.source,
-            f"repos/{CODE}/commits/{CODE_MERGE}": {
+            f"repos/{repository}/pulls/40": self.source,
+            f"repos/{repository}/commits/{CODE_MERGE}": {
                 "parents": [{"sha": CODE_BASE}, {"sha": CODE_HEAD}], "commit": self.merge_message,
             },
-            f"repos/{CODE}/compare/{CODE_BASE}...{CODE_BASE}?per_page=1": {"status": "identical"},
-            f"repos/{CODE}/compare/{CODE_BASE}...{CODE_HEAD}?per_page=1": {"status": "ahead"},
-            f"repos/{CODE}/git/ref/heads/main": {"object": {"sha": CODE_MERGE}},
-            f"repos/{CODE}/compare/{CODE_MERGE}...{CODE_MERGE}?per_page=1": {"status": "identical"},
-            f"repos/{CODE}/git/trees/{CODE_TREE}?recursive=1": {
-                "truncated": False, "tree": [{"path": CODE_PATH, "type": "blob", "sha": CODE_BLOB}],
+            f"repos/{repository}/compare/{CODE_BASE}...{CODE_BASE}?per_page=1": {"status": "identical"},
+            f"repos/{repository}/compare/{CODE_BASE}...{CODE_HEAD}?per_page=1": {"status": "ahead"},
+            f"repos/{repository}/git/ref/heads/main": {"object": {"sha": CODE_MERGE}},
+            f"repos/{repository}/compare/{CODE_MERGE}...{CODE_MERGE}?per_page=1": {"status": "identical"},
+            f"repos/{repository}/git/trees/{CODE_TREE}?recursive=1": {
+                "truncated": False, "tree": [{"path": code_path, "type": "blob", "sha": CODE_BLOB}],
             },
         })
-        self.code.files[CODE, 40] = [{"filename": CODE_PATH, "status": "modified", "sha": CODE_BLOB}]
+        self.code.files[repository, 40] = [{"filename": code_path, "status": "modified", "sha": CODE_BLOB}]
 
         self.proposal = {
             "number": 12, "state": "open", "draft": False, "merged": False, "changed_files": 3,
             "base": {"ref": "main", "repo": {"full_name": DOCS}},
-            "head": {"sha": DOCS_HEAD, "ref": "docs/sync/fitlog-v2-web-40", "repo": {"full_name": DOCS}},
-            "body": f"Docs-Sync-Source: {CODE}#40\nDocs-Sync-Base: {CODE_BASE}",
+            "head": {"sha": DOCS_HEAD, "ref": f"docs/sync/{repository.split('/')[-1]}-40", "repo": {"full_name": DOCS}},
+            "body": f"Docs-Sync-Source: {repository}#40\nDocs-Sync-Base: {CODE_BASE}",
         }
         self.docs.responses.update({
             f"repos/{DOCS}/pulls/12": self.proposal,
@@ -86,7 +91,7 @@ class SyncTests(unittest.TestCase):
         self.docs.files[DOCS, 12] = []
         self.valid_markdown = (
             "# 구현 동기화\n\n## 변경 사항\n\n"
-            f"[코드](https://github.com/{CODE}/blob/{CODE_HEAD}/{CODE_PATH})\n\n"
+            f"[코드](https://github.com/{repository}/blob/{CODE_HEAD}/{code_path})\n\n"
             + "\n".join(f"| {label} | Fixture |" for label in METADATA)
         )
         for index, path in enumerate(("status/CURRENT_STATUS.md", "status/BACKLOG.md", HISTORY)):
@@ -120,6 +125,49 @@ class SyncTests(unittest.TestCase):
         self.assertEqual(len(self.docs.writes), 1)
         self.assertEqual(self.docs.writes[0][1]["sha"], DOCS_HEAD)
         self.assertEqual(self.code.writes, [])
+
+    def test_server_event_merges_only_the_approved_docs_head(self):
+        self.configure_fixture("pby1360/fitlog-v2-server", "src/main/java/fitlog/Workout.java")
+        self.assertIn("Docs PR #12 merged", self.run_sync())
+        self.assertEqual(len(self.docs.writes), 1)
+        self.assertEqual(self.docs.writes[0][1]["sha"], DOCS_HEAD)
+        self.assertEqual(self.code.writes, [])
+
+    def test_event_without_authorization_does_not_write(self):
+        self.merge_message["message"] = "Merge without Docs authorization"
+        self.assert_blocked("Docs-Sync-Kind")
+
+    def test_missing_pull_request_or_denied_api_read_does_not_write(self):
+        for status in (401, 403, 404):
+            with self.subTest(status=status):
+                code = GitHub("offline-test")
+                code.opener = Mock()
+                code.opener.open.side_effect = HTTPError(
+                    "https://api.github.com/offline-test", status, "Fixture error", None, None,
+                )
+                with self.assertRaisesRegex(Blocked, rf"GitHub rejected GET \({status}\)"):
+                    synchronize(self.docs, code, self.event)
+                code.opener.open.assert_called_once()
+                self.assertEqual(self.docs.writes, [])
+
+    def test_previously_merged_docs_pr_exits_without_writes(self):
+        self.proposal["merged"] = True
+        self.assertIn("already merged", self.run_sync())
+        self.assertEqual(self.docs.writes, [])
+        self.assertEqual(self.code.writes, [])
+
+    def test_main_moving_after_document_validation_does_not_write(self):
+        request = self.docs.request
+        base_path = f"repos/{DOCS}/git/ref/heads/main"
+        bases = iter((DOCS_BASE, "9" * 40))
+
+        def change_base_after_first_read(path, method="GET", body=None):
+            if path == base_path and method == "GET":
+                return {"object": {"sha": next(bases)}}
+            return request(path, method, body)
+
+        with patch.object(self.docs, "request", side_effect=change_base_after_first_read):
+            self.assert_blocked("Docs main moved during validation")
 
     def test_broken_relative_link_blocks_merge(self):
         self.set_blob("1" * 40, self.valid_markdown + "\n[없는 문서](missing.md)")
