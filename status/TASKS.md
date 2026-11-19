@@ -145,6 +145,33 @@
 | 관련 Tech Spec | [동기화 운영 설계](../operations/DOCS_SYNC.md) |
 | 완료 근거 | [docs `7313dac`](https://github.com/pby1360/fitlog-v2-docs/commit/7313dac365316a773c2890f9f502beb8fcaf9f71), [server `31cc7eb`](https://github.com/pby1360/fitlog-v2-server/commit/31cc7eb95e4777cb8d73e7aba26d6ff74a7743ca), [web `a344499`](https://github.com/pby1360/fitlog-v2-web/commit/a3444992855406dc51ed3a5542f7c3dddd830b42) · GitHub App 설치 및 실제 연동 검증은 후속 설정. |
 
+### V1-02-A
+
+| 항목 | 값 |
+| --- | --- |
+| 작업 제목 | 핵심 사용자 흐름 자동 검증 강화 |
+| 우선순위 | [P0](BACKLOG.md#p0) |
+| 작업 상태 | `APPROVED` |
+| 대상 저장소 | `fitlog-v2-web`, `fitlog-v2-server`(기존 테스트 재검증), `fitlog-v2-docs` |
+| 담당 에이전트 | Codex |
+| Cloud 환경 | `fitlog-v2` |
+| Cloud 실행 ID | 해당 없음 |
+| 선점 ID | 해당 없음 |
+| 작업 브랜치 | 웹 `test/v1-02-a-core-flows` 예정 |
+| 코드 PR | 해당 없음 |
+| Docs PR | 해당 없음 |
+| 승인 근거 | V1-02-A 작업 범위와 검증 계획을 보고한 대화에서 사용자가 “실행해”로 승인. 모의 API Playwright, 기존 서버 테스트 재검증, 검증 문서와 Draft PR에 한정 |
+| 승인 시각 | `2026-11-19T13:32:06+09:00` (대화 승인 확인 시각) |
+| 시작 시각 | 해당 없음 |
+| 실행 시작 근거 | 해당 없음 |
+| 마지막 상태 갱신 시각 | `2026-11-19T13:32:06+09:00` |
+| 완료 시각 | 해당 없음 |
+| 차단 사유 | 해당 없음 |
+| 관련 BACKLOG | [V1-02](BACKLOG.md#p0) |
+| 관련 PRD | [계정](../features/account/PRD.md), [운동 프로그램](../features/workout-program/PRD.md), [운동 세션](../features/workout-session/PRD.md), [운동 일지](../features/workout-history/PRD.md) |
+| 관련 Tech Spec | [계정](../features/account/TECH_SPEC.md), [운동 프로그램](../features/workout-program/TECH_SPEC.md), [운동 세션](../features/workout-session/TECH_SPEC.md), [운동 일지](../features/workout-history/TECH_SPEC.md) |
+| 완료 근거 | 해당 없음 |
+
 ## 문서 추적 정보
 
 | 추적 정보 | 내용 |
