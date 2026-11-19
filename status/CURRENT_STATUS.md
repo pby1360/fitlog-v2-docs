@@ -65,6 +65,8 @@ React·JPA·배포의 옛 기술 기록과 현재 구성의 차이는 [프런트
 
 ## 실행 검증
 
+- V1-02-A는 웹 브랜치에서 Playwright 21개(기존 캘린더 12개 포함)를 통과했다. 모의 API로 로그인·토큰 갱신·로그아웃, 세트 저장 실패 후 복구·휴식·운동 완료·일지, 계정 탈퇴 204·409를 확인했다. 서버 `6d1c7ba`의 내장 PostgreSQL 테스트 91개도 통과했다. 실제 OAuth와 휴대폰 검증은 V1-02에 남는다. [인증·탈퇴 테스트](https://github.com/pby1360/fitlog-v2-web/blob/a0300f1dfd3a89117db88b45a87f650a671cd9fa/tests/auth-account.spec.ts), [운동 흐름 테스트](https://github.com/pby1360/fitlog-v2-web/blob/a0300f1dfd3a89117db88b45a87f650a671cd9fa/tests/workout-flow.spec.ts), [수동 검증](../features/account/TECH_SPEC.md#실제-oauth-및-휴대폰-수동-검증-체크리스트)
+
 - 서버는 기준 커밋 복사본에서 Java 21과 로컬 Gradle 캐시로 `./gradlew test --offline --no-daemon`을 실행했다. 17개 테스트 클래스, 91개 통과, 실패·오류·건너뛰기 0개다.
 - V1-04는 Node 20.20.2에서 깨끗한 설치, 린트, 타입 검사, 빌드, Playwright 12개를 통과했다. 린트 오류는 0건이고 기존 경고 3건이 남았다. GitHub PR 검사는 통과했다.
 - V1-04 병합 커밋에는 `[skip ci]`가 적용됐다. 이력 갱신 시점에는 운영 배포 성공을 확인하지 못했다. Playwright는 로컬 Chromium·모의 API 검증이며 실제 운영 데이터나 기기는 별도 검증한다. [변경 이력](../history/2026-11-19.md)

@@ -24,6 +24,17 @@
 
 `AuthIntegrationTest`, `OAuthLoginIntegrationTest`, `TokenProviderTest`, `MemberWithdrawalIntegrationTest`와 출시용 두 공급자 로그인 흐름을 확인한다.
 
+모의 API를 사용하는 Playwright로 콜백 코드 중복 교환 방지, 로그인 오류·만료, 동시에 만료된 요청의 토큰 갱신·재시도, 로그아웃 후 보호 화면 접근, 탈퇴 확인·취소 및 204·409 처리를 검사한다. 서버 통합 테스트는 내장 PostgreSQL에서 성공 시 관련 데이터 파기와 409 충돌 시 트랜잭션 롤백을 검사한다. [웹 자동 테스트](https://github.com/pby1360/fitlog-v2-web/blob/a0300f1dfd3a89117db88b45a87f650a671cd9fa/tests/auth-account.spec.ts), [서버 통합 테스트](https://github.com/pby1360/fitlog-v2-server/blob/6d1c7ba7f227b3b6087e2033b1e74213f25fa708/src/test/java/com/fitlog/fitlogv2server/domain/member/MemberWithdrawalIntegrationTest.java)
+
+### 실제 OAuth 및 휴대폰 수동 검증 체크리스트
+
+승인된 비운영 환경·테스트 계정으로 수행하고 결과에 기기, OS, 브라우저, 환경, 웹·서버 커밋과 검사 시각을 기록한다. 실행 상태는 [V1-02](../../status/BACKLOG.md#p0)에서 확인한다.
+
+- [ ] 실제 Google과 Kakao에서 각각 첫 로그인과 재로그인을 수행한다. 공급자 화면에서 취소했을 때 안내와 재시도 경로도 확인한다.
+- [ ] 테스트 세션의 액세스 토큰 만료 후 보호 화면 요청이 복구되는지 확인한다. 로그아웃 후 이전 세션이 종료되고 보호 화면 URL에 직접 진입하면 홈으로 돌아오는지 확인한다.
+- [ ] 실제 휴대폰에서 프로그램을 선택해 운동을 시작하고 무게·횟수를 저장한다. 휴식, 화면 전환 후 복귀, 완료, 일지의 실측값 표시를 확인하며 첫 기록까지 걸린 시간을 남긴다.
+- [ ] 전용 테스트 계정의 탈퇴 확인을 취소한 뒤, 별도 확인에서 탈퇴를 완료한다. 보호 화면과 기존 기록에 접근할 수 없는지 확인한다. 409 재현에는 별도로 준비한 비운영 충돌 데이터를 사용해 안내와 롤백을 확인한다.
+
 ## 위험 및 롤백
 
 인증 포맷 및 마이그레이션이 바뀌는 배포의 호환성과 구버전 세션은 [런북](../../operations/RUNBOOK.md) 기준으로 검토한다. 탈퇴로 파기한 레코드에 대해 애플리케이션 복구 경로는 확인되지 않았다.
@@ -33,5 +44,5 @@
 | 문서 상태 | 검토 중 |
 | 원본 출처 | Obsidian `기획.md`, `TECH_SPEC.md`, `history/2026-03-17.md` 및 서버·웹 main |
 | 관련 기능 또는 Issue | A-1–A-2, [서버 PR #28](https://github.com/pby1360/fitlog-v2-server/pull/28), [웹 PR #26](https://github.com/pby1360/fitlog-v2-web/pull/26) |
-| 최종 검증일 | 2026-11-18 |
+| 최종 검증일 | 2026-11-19 |
 | 관련 설계 | [백엔드](../../architecture/BACKEND.md), [프런트엔드](../../architecture/FRONTEND.md) |
