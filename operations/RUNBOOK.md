@@ -30,6 +30,21 @@
 3. **Flyway.** 마지막으로 확인한 서버 배포 SHA와 최신 `main`의 V1–V7 마이그레이션은 동일하다. 더 이전 후보는 V4 인증 전환과 V7 개인정보 컬럼 제거 이후의 스키마를 사용할 수 있는지 확인한다. 승인된 운영 담당자가 적용 migration 버전·checksum 메타데이터만 제공하고, 데이터나 자격증명 없이 그 버전을 재현한 격리 DB에서 후보 이미지의 시작·인증·세션 기능을 검증한다. Cloud Run 트래픽 전환은 DB 스키마를 되돌리지 않는다.
 4. **훈련 기록.** 대상·영향 범위·합격 기준·원상 복구 조건을 승인 요청에 남긴다. 리비전 및 릴리스 ID, 시작/종료 시각(KST), 검증 시나리오와 결과를 기록한다. Web과 Server 모두 현재 안정 대상과 실제 롤백 실행이 `UNVERIFIED`다. [배포 증거](DEPLOYMENT.md#ops-01-배포-증거) · [Cloud Run 트래픽 관리](https://cloud.google.com/run/docs/rollouts-rollbacks-traffic-migration)
 
+### Flyway 이력 증빙
+
+운영 담당자가 승인된 읽기 전용 세션으로 Flyway 이력 테이블의 메타데이터만 확인한다. 필요한 앱 DB 권한은 대상 스키마 `USAGE`와 이력 테이블 `SELECT`다. 배포 설정에서 별도 스키마를 사용한다면 아래 `public`을 해당 스키마로 바꾼다. DB 접속 문자열이나 회원 데이터는 증빙에 포함하지 않는다.
+
+```sql
+BEGIN TRANSACTION READ ONLY;
+SELECT installed_rank, version, checksum, success
+FROM public.flyway_schema_history
+WHERE version IS NOT NULL
+ORDER BY installed_rank;
+ROLLBACK;
+```
+
+성공 행의 마지막 버전과 각 체크섬을 후보 이미지의 마이그레이션과 비교한다. 현재 서버 소스의 마지막 버전은 V7이다. 실제 운영 적용 버전은 이력 조회 전까지 `UNVERIFIED`다. V7이 제거한 회원 컬럼 값은 이미지 롤백으로 복원되지 않는다. 운영 스키마 버전을 재현한 격리 DB에서 이전 이미지의 기동·스키마 검증·OAuth 세션·운동 기록 읽기/쓰기를 통과해야 후보를 안정 리비전으로 판정한다. [V7 마이그레이션](https://github.com/pby1360/fitlog-v2-server/blob/6d1c7ba7f227b3b6087e2033b1e74213f25fa708/src/main/resources/db/migration/V7__privacy_minimize_member_data.sql)
+
 운영 지표와 사용자 흐름의 관측 상태는 [백로그](../status/BACKLOG.md)에서 추적한다.
 
 | 추적 정보 | 내용 |
@@ -37,5 +52,5 @@
 | 문서 상태 | 검토 중 |
 | 원본 출처 | Obsidian `배포.md`, `TASKS.md` P1의 이관·장애 메모, `ROADMAP.md` M3–M4 및 서버·웹 main |
 | 관련 기능 또는 Issue | M2–M4, DoD-1 |
-| 최종 검증일 | 2026-11-19 |
+| 최종 검증일 | 2026-11-20 |
 | 관련 설계 | [배포](DEPLOYMENT.md), [API 오류 계약](../api/README.md), [데이터 모델](../architecture/DATA_MODEL.md) |
