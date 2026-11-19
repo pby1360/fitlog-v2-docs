@@ -2,6 +2,51 @@
 
 [TASKS](../status/TASKS.md)의 `main`이 작업 실행 상태의 원본이다. [BACKLOG](../status/BACKLOG.md)는 요구사항·우선순위·완료 조건, [CURRENT_STATUS](../status/CURRENT_STATUS.md)는 구현과 검증 근거, [ROADMAP](../product/ROADMAP.md)은 마일스톤을 관리한다. 각 상태 변경은 Docs PR의 변경 이력과 `main`의 병합 SHA로 추적한다. 날짜·시각은 `Asia/Seoul`의 `YYYY-MM-DDTHH:mm:ss+09:00`으로 기록한다. 기존 기록에서 정확한 시각을 확인할 수 없으면 `미확인`으로 남긴다.
 
+## 신규 기능과 실행 대기열
+
+1. [신규 기능 아이디어](../product/FEATURE_IDEAS.md)에서 제안을 등록하고 검토 상태를 관리한다. 사용자가 요청하면 기존 PRD·Tech Spec 템플릿으로 구체화한다. 제품 정책·범위, 의존성, 수용 기준과 구현·테스트 범위를 확인한 뒤 사용자에게 승인 근거를 받는다.
+2. 승인된 기능을 같은 ID로 BACKLOG의 P0~P3에 올린다. 명세를 Docs `main`에 반영하고 확정한 PRD·Tech Spec 두 파일이 포함된 전체 커밋 SHA를 기록한다. 자동 개발을 허용하는 승인 기록에는 Task ID, 그 SHA, 대상 저장소와 자동 개발 허용 범위를 명시한다.
+3. [WORK_QUEUE](../status/WORK_QUEUE.yaml)에 항목이 필요하면 [스키마](../status/WORK_QUEUE.schema.json)에 맞춰 별도 Docs PR로 등록한다. 처음 `READY`에 등록하려면 같은 Task ID가 TASKS에서 `APPROVED`여야 한다. `backlog_ref`, `prd_ref`, `tech_spec_ref`는 저장소 루트 기준이다. 백로그 링크의 `#p0`~`#p3`와 각 우선순위 표의 실제 Task ID를 대조한다. `depends_on`은 선행 Task ID의 목록이며, 완료 기준은 TASKS의 코드·문서 병합 근거를 갖춘 `DONE`이다.
+
+아래는 대기열 `tasks`에 적는 항목의 형식 예시다.
+
+```yaml
+- task_id: FEAT-0001
+  backlog_ref: status/BACKLOG.md#p2
+  prd_ref: features/example/PRD.md
+  tech_spec_ref: features/example/TECH_SPEC.md
+  repositories: [pby1360/fitlog-v2-web]
+  priority: P2
+  auto_development_allowed: false
+  approval_ref: null
+  approved_spec_sha: null
+  depends_on: []
+  state: WAITING
+```
+
+| 대기열 상태 | 의미 |
+| --- | --- |
+| `WAITING` | 백로그 등록 후 자동 개발 승인, 명세 확정 또는 선행 조건을 기다린다. |
+| `READY` | 사용자 승인 근거, 확정 PRD·Tech Spec과 변경 없는 승인 SHA, 명확한 대상 저장소, 선행 작업 `DONE`, `auto_development_allowed: true`를 모두 확인했다. |
+| `HOLD` | 승인 철회, 명세 변경 또는 차단 사유가 있다. 다시 편입하려면 최신 근거를 검증한다. |
+| `REMOVED` | 완료·취소·제외로 대기열에서 내려 감사 기록만 남긴다. |
+
+대기열 상태는 후보 편입 여부를 나타낸다. 실행 상태와 선점은 TASKS에서 확인한다. 승인 명세 SHA는 현재 Docs `main`의 조상이어야 하고 현재 PRD·Tech Spec의 내용이 승인 때와 일치해야 한다. 두 명세 파일 중 하나라도 바뀌면 후보에서 제외하고 사용자에게 재승인을 받는다. 그 밖의 문서만 바뀐 커밋은 기존 명세 승인을 유지할 수 있다. 승인 기록의 SHA·대상 저장소를 대기열에서 바꾸면 원래 승인과 일치하는지 다시 확인한다.
+
+### 후보 선택과 검증
+
+1. 한 번의 선택은 최신 Docs `main` SHA로 모두 고정한다. TASKS의 `STARTING`, `IN_PROGRESS`, `PR_OPEN`과 실행 여부가 불확실한 `BLOCKED`를 먼저 확인한다. 대상 저장소의 Task ID가 연결된 기존 PR·CI, 접근 가능한 실행 목록과 대조한다. 활동 중인 작업이 있거나 상태 조회 결과를 신뢰할 수 없으면 새 작업 선택을 보류한다.
+2. `READY` 중 TASKS가 `APPROVED`인 작업만 고려한다. 신뢰할 수 있는 승인 원본에서 승인자, 적용 범위, Task ID, 승인 SHA, 대상 저장소와 자동 개발 허용을 교차 확인한다. YAML의 링크와 상태는 교차 확인할 입력이다. 의존과 명세의 내용도 확인한다. 실행 인터페이스가 연결돼 있는지 확인할 수 없으면 실행 후보를 정하지 않는다.
+3. 검증을 통과한 작업 중 `P0`부터 `P3` 순서로 한 건을 선정한다. 같은 우선순위에서는 Task ID 오름차순을 사용한다. 예약 점검은 보고만 남긴다. 이후 별도로 승인·연결된 실행 워커가 있다면 최신 근거를 재검증하고 [승인과 선점](#승인과-선점) 절차를 거친다. 자기 선점으로 `STARTING`이 반영되기 전에는 실행 요청을 보내지 않는다.
+
+초기 대기열은 비어 있다. [로컬 검사기](../scripts/validate_work_queue.py)는 특정 Git 스냅샷의 스키마, 중복 ID, 백로그·명세 참조, 의존 상태 및 승인 SHA를 검사한다. 관련 Docs PR에도 동일한 검사를 실행한다. 후보 함수에는 승인 원본 및 활동 조회를 별도 검증한 입력이 필요하다. 검사 CLI는 GitHub나 Cloud에 요청을 보내지 않는다.
+
+```sh
+python -m pip install -r scripts/work-queue-requirements.txt
+python scripts/validate_work_queue.py HEAD
+PYTHONPATH=scripts python -m unittest discover -s tests
+```
+
 ## 상태와 전이
 
 | 상태 | 진입 조건 | 허용되는 다음 상태 |
@@ -49,6 +94,13 @@
 예약 점검은 설정 후 3시간 간격으로 읽기 전용 실행한다. 우선 Docs `main`의 TASKS를 기준으로 `STARTING`, `IN_PROGRESS`, `PR_OPEN`, `BLOCKED`의 마지막 갱신과 근거를 읽고 GitHub PR·CI 상태를 대조한다. 접근 가능한 경우 Cloud 실행 ID 및 실행 상태를 확인한다. 권한 또는 근거가 없으면 `미확인`으로 보고한다.
 
 Task별 직전 관측의 상태·마지막 갱신 시각·선점 ID를 별도의 관측 기록과 비교한다. 기준 스냅샷 이후 두 번 연속 갱신이 관찰되지 않거나 실제 실행 상태와 기록이 충돌하면 사용자 확인이 필요하다고 보고한다. 보고에는 Task ID, 관련 PR·CI, 마지막 증거, 점검 시각과 충돌 내용을 포함한다. 관측 결과만으로 `DONE` 또는 `CANCELLED`로 전이하거나 실행을 재시작하지 않는다. 점검은 TASKS와 Git 브랜치를 직접 수정하지 않는다.
+
+## Codex Cloud 연동 계획
+
+- 저장된 `fitlog-v2` 환경을 환경 목록에서 확인했다. 공식 CLI는 실험 기능인 `codex cloud exec`로 작업 생성, `codex cloud list --json`으로 목록 조회를 지원한다. 설치된 CLI 도움말은 작업 ID를 받는 `codex cloud status`도 제공한다. 현재 실행 환경에서 읽기 전용 `list` 요청은 연결 실패로 응답을 확인하지 못했다. 환경 목록 노출만으로 CLI 인증, 조회 권한이나 생성 성공을 보장할 수 없다. 이 환경의 작업 생성·조회에 사용할 안정적인 공개 REST 계약이나 제공자 차원의 중복 요청 키는 확인되지 않았다. [OpenAI CLI 명령 참고](https://developers.openai.com/codex/cli/reference#codex-cloud)
+- 연동 전 운영 담당자는 실행 워커의 승인된 CLI 로그인과 대상 환경 접근 범위를 확인한다. 워커에는 Docs·대상 코드의 조회, 승인된 브랜치와 Draft PR에 필요한 GitHub 권한만 제공한다. main 직접 푸시, 코드 PR 병합, 운영 배포 자격증명은 부여하지 않는다. 자격증명은 승인된 시크릿 저장소에 보관한다.
+- 실행 워커는 `(Task ID, 선점 ID)`를 유일 키로 둔 내구성 있는 기록에 요청 상태와 제공자 작업 ID를 보존한다. 작업 브랜치, 확정 명세와 선점 ID를 실행 입력에 포함한다. 요청 성공 후 작업 ID로 상태를 조회해 시작 근거를 확인한다. 응답 유실 시 같은 키의 기존 작업을 확인하기 전 재요청하지 않는다. 작업 존재나 결과가 불확실하면 승인된 담당자가 `BLOCKED`로 기록하고 복구한다.
+- CLI 로그인이 가능한 실행 환경에서도 연결·조회·취소 복구를 비운영 테스트로 먼저 확인한다. 해당 인터페이스를 신뢰할 수 없다면 승인된 별도 워커에서 비대화형 `codex exec`를 사용하고 워커가 실행 ID·상태를 관리하는 방안을 검토한다. 이 경로는 별도 실행 인프라를 사용하므로 Codex Cloud 작업 ID로 기록하지 않는다. 실행 연동 도입 전까지는 읽기 전용 예약 점검과 승인된 담당자의 수동 선점 절차를 사용한다. [OpenAI 비대화형 실행 문서](https://developers.openai.com/codex/noninteractive)
 
 | 추적 정보 | 내용 |
 | --- | --- |
