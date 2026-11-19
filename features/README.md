@@ -1,5 +1,7 @@
 # 기능 목록
 
+로드맵에 없던 기능은 [신규 기능 아이디어](../product/FEATURE_IDEAS.md)에 등록한다. 사용자가 구체화를 요청하면 아래와 같은 구조에 PRD와 Tech Spec을 작성한다.
+
 | 기능 | 제품 요구사항 | 기술 설계 |
 | --- | --- | --- |
 | 계정 및 인증 | [PRD](account/PRD.md) | [Tech Spec](account/TECH_SPEC.md) |

@@ -1,0 +1,36 @@
+name: Validate FitLog work queue
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/work-queue-tests.yml
+      - scripts/validate_work_queue.py
+      - scripts/work-queue-requirements.txt
+      - tests/test_work_queue.py
+      - status/WORK_QUEUE.*
+      - status/BACKLOG.md
+      - status/TASKS.md
+      - features/*/PRD.md
+      - features/*/TECH_SPEC.md
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate the committed queue and run fixtures
+        run: |
+          python3 -m venv "$RUNNER_TEMP/fitlog-work-queue"
+          python="$RUNNER_TEMP/fitlog-work-queue/bin/python"
+          "$python" -m pip install -r scripts/work-queue-requirements.txt
+          "$python" scripts/validate_work_queue.py HEAD
+          PYTHONPATH=scripts "$python" -m unittest discover -s tests -v

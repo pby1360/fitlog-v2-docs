@@ -7,6 +7,7 @@ FitLog는 개인 사용자가 운동 루틴을 빠르게 기록하고, 이후 �
 | 누구를 위한 서비스인지, v1과 v2에서 무엇을 만드는지 | [비전](product/VISION.md), [제품 요구사항](product/REQUIREMENTS.md) |
 | 마일스톤과 출시 판정 | [로드맵](product/ROADMAP.md), [출시 기준](product/RELEASE_CRITERIA.md) |
 | 검증된 구현 상태와 다음 작업 | [현재 상태](status/CURRENT_STATUS.md), [백로그](status/BACKLOG.md) |
+| 신규 기능 제안·검토와 실행 대기 | [신규 기능 아이디어](product/FEATURE_IDEAS.md), [작업 대기열](status/WORK_QUEUE.yaml) |
 | 작업 승인·선점·진행·종료 | [작업 실행 현황](status/TASKS.md), [개발 작업 등록과 실행](operations/DEVELOPMENT_WORKFLOW.md) |
 | 기능별 요구사항과 설계 | [기능 목록](features/README.md) |
 | 시스템 경계, 코드 구조, 데이터와 API | [시스템 개요](architecture/SYSTEM_OVERVIEW.md), [API 목록](api/README.md) |

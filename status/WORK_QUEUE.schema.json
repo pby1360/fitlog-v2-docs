@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FitLog development queue",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "tasks"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "tasks": {"type": "array", "items": {"$ref": "#/$defs/task"}}
+  },
+  "$defs": {
+    "task_id": {"type": "string", "pattern": "^([A-Z][A-Z0-9]*-)+[0-9]{2,}(-[A-Z0-9]+)*$"},
+    "approval_ref": {"type": "string", "pattern": "^https://[^\\s]+$"},
+    "sha": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_id", "backlog_ref", "prd_ref", "tech_spec_ref", "repositories", "priority",
+        "auto_development_allowed", "approval_ref", "approved_spec_sha", "depends_on", "state"
+      ],
+      "properties": {
+        "task_id": {"$ref": "#/$defs/task_id"},
+        "backlog_ref": {"enum": ["status/BACKLOG.md#p0", "status/BACKLOG.md#p1", "status/BACKLOG.md#p2", "status/BACKLOG.md#p3"]},
+        "prd_ref": {"type": "string", "pattern": "^features/[a-z0-9-]+/PRD\\.md$"},
+        "tech_spec_ref": {"type": "string", "pattern": "^features/[a-z0-9-]+/TECH_SPEC\\.md$"},
+        "repositories": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": {"enum": ["pby1360/fitlog-v2-web", "pby1360/fitlog-v2-server"]}
+        },
+        "priority": {"enum": ["P0", "P1", "P2", "P3"]},
+        "auto_development_allowed": {"type": "boolean"},
+        "approval_ref": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/approval_ref"}]},
+        "approved_spec_sha": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/sha"}]},
+        "depends_on": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/task_id"}},
+        "state": {"enum": ["WAITING", "READY", "HOLD", "REMOVED"]}
+      },
+      "if": {"properties": {"state": {"const": "READY"}}},
+      "then": {
+        "properties": {
+          "auto_development_allowed": {"const": true},
+          "approval_ref": {"$ref": "#/$defs/approval_ref"},
+          "approved_spec_sha": {"$ref": "#/$defs/sha"}
+        }
+      }
+    }
+  }
+}
