@@ -173,6 +173,60 @@
 | 완료 근거 | [웹 병합 `4ae88e1`](https://github.com/pby1360/fitlog-v2-web/commit/4ae88e1333ef1d7d2af2d436f1a8df8ea2c2d5d6), [Docs 병합 `b153999`](https://github.com/pby1360/fitlog-v2-docs/commit/b1539994668ae44a86808447cd82eaa82e4a4e6a), [웹 main CI](https://github.com/pby1360/fitlog-v2-web/actions/runs/44462060250). 실제 OAuth 및 휴대폰 검증은 상위 [V1-02](BACKLOG.md#p0)에 남음 |
 | 검증 근거 | 웹 로컬 Playwright 21개와 서버 로컬 테스트 91개 통과. 실제 OAuth·휴대폰 검증은 상위 [V1-02](BACKLOG.md#p0)에 유지 |
 
+### OPS-01
+
+| 항목 | 값 |
+| --- | --- |
+| 작업 제목 | 양쪽 배포와 롤백 증거 |
+| 우선순위 | [P0](BACKLOG.md#p0) |
+| 작업 상태 | `PROPOSED` |
+| 대상 저장소 | `fitlog-v2-docs`, `fitlog-v2-web`, `fitlog-v2-server` |
+| 담당 에이전트 | 미지정 |
+| Cloud 환경 | `fitlog-v2` |
+| Cloud 실행 ID | 해당 없음 |
+| 선점 ID | 해당 없음 |
+| 작업 브랜치 | 해당 없음 |
+| 코드 PR | 해당 없음 |
+| Docs PR | [조사 Draft PR #14](https://github.com/pby1360/fitlog-v2-docs/pull/14) |
+| 승인 근거 | 읽기 조사와 문서화는 수행했다. 격리 환경 롤백 훈련 또는 운영 검증은 별도 승인 대기 |
+| 승인 시각 | 해당 없음 |
+| 시작 시각 | 해당 없음 |
+| 실행 시작 근거 | 해당 없음 |
+| 마지막 상태 갱신 시각 | `2026-11-19T16:51:22+09:00` |
+| 완료 시각 | 해당 없음 |
+| 차단 사유 | 현재 Hosting 릴리스, Cloud Run 트래픽·이미지 보존 및 Flyway 적용 메타데이터 미확인 |
+| 관련 BACKLOG | [OPS-01](BACKLOG.md#p0) |
+| 관련 PRD | 해당 없음 |
+| 관련 Tech Spec | [배포](../operations/DEPLOYMENT.md), [런북](../operations/RUNBOOK.md) |
+| 완료 근거 | 해당 없음 |
+
+### DOCS-SYNC-02
+
+| 항목 | 값 |
+| --- | --- |
+| 작업 제목 | GitHub App 설정 복구 및 Docs 동기화 E2E |
+| 우선순위 | 미지정 |
+| 작업 상태 | `PROPOSED` |
+| 대상 저장소 | `fitlog-v2-docs`, `fitlog-v2-web`, `fitlog-v2-server` |
+| 담당 에이전트 | 미지정 |
+| Cloud 환경 | `fitlog-v2` |
+| Cloud 실행 ID | 해당 없음 |
+| 선점 ID | 해당 없음 |
+| 작업 브랜치 | 해당 없음 |
+| 코드 PR | 해당 없음 |
+| Docs PR | [조사 Draft PR #14](https://github.com/pby1360/fitlog-v2-docs/pull/14) |
+| 승인 근거 | 설정 변경 후 승인된 비운영 테스트로 발신·수신 및 정확한 Docs SHA 병합을 검증할 후보 |
+| 승인 시각 | 해당 없음 |
+| 시작 시각 | 해당 없음 |
+| 실행 시작 근거 | 해당 없음 |
+| 마지막 상태 갱신 시각 | `2026-11-19T16:51:22+09:00` |
+| 완료 시각 | 해당 없음 |
+| 차단 사유 | 발신 토큰에 App ID가 전달되지 않음. 설정 범위·두 App 설치·권한과 실제 교차 저장소 검증 미확인 |
+| 관련 BACKLOG | 해당 없음. [동기화 구축 이력](#docs-sync-01) |
+| 관련 PRD | 해당 없음 |
+| 관련 Tech Spec | [Docs 동기화](../operations/DOCS_SYNC.md) |
+| 완료 근거 | 해당 없음 |
+
 ## 문서 추적 정보
 
 | 추적 정보 | 내용 |
