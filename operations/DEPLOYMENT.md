@@ -64,6 +64,30 @@ gcloud artifacts repositories list-cleanup-policies fitlog --project=fitlog-5053
 
 [롤백 판단과 검증](RUNBOOK.md#ops-01-롤백-검증) · [Cloud Run 리비전](https://cloud.google.com/run/docs/managing/revisions) · [Artifact Registry 정리 정책](https://cloud.google.com/artifact-registry/docs/repositories/cleanup-policy)
 
+### OPS-01 읽기 전용 증빙 형식
+
+2026-11-20 KST 후속 조회에서도 Web `4ae88e1`·Server `6d1c7ba` 이후의 성공 배포 실행은 확인되지 않았다. 두 최신 `main` 실행의 deploy 잡은 생략됐다. 이 작업 환경에는 GCP 인증이나 gcloud CLI가 없었다. 운영 Hosting 릴리스·Cloud Run 트래픽 및 롤백 후보는 `UNVERIFIED`다. [Web main CI](https://github.com/pby1360/fitlog-v2-web/actions/runs/44462060250) · [Server main CI](https://github.com/pby1360/fitlog-v2-server/actions/runs/44450257913)
+
+- **Hosting 목록.** 담당자가 Hosting Viewer 등 `firebasehosting.releases.list` 권한으로 현재 사이트와 이전 릴리스의 `name`, `version.name`, `releaseTime`, `type`을 수집한다. 도메인 연결과 실시간 live는 콘솔에서도 대조한다. ID와 시각을 남기고, Git SHA 대응 근거가 없는 경우 그 대응은 미확인으로 둔다. [Hosting releases.list](https://firebase.google.com/docs/reference/hosting/rest/v1beta1/sites.releases/list)
+- **Cloud Run 설정.** 배포 전후 또는 후보 리비전에서 환경 변수 이름과 Secret Manager 참조를 비교한다. 값이 들어 있는 원본 응답은 공유하지 않는다. 기존 트래픽·이미지 보존 명령과 이 비교 결과를 함께 기록한다.
+- **배포 승인 조건.** Hosting에서 V1-04 미반영이 확인되면 Web `main`의 캘린더 변경과 빌드 입력, 현재 live와 직전 안정 릴리스를 대조한다. 배포가 별도로 승인된 경우만 담당자가 `main`의 `Deploy to Firebase Hosting → Run workflow`에서 `confirm_deploy`를 선택한다. 전후로 SPA 직접 진입, 캘린더 월 이동·상세 복귀, PWA 새로고침, API 주소를 검증한다. 서버는 운영 리비전과 SHA/digest 차이를 확보한 뒤 배포 필요 여부를 판단한다.
+
+인증된 담당자용 Hosting 및 Cloud Run 조회 예시다. Cloud Run 예시의 `revision`에는 리비전 이름만 입력한다.
+
+```sh
+gcloud auth print-access-token |
+  sed 's/^/Authorization: Bearer /' |
+  curl -fsS --header @- 'https://firebasehosting.googleapis.com/v1beta1/sites/fitlog-505315-5af8e/releases?pageSize=5' |
+  jq '[.releases[]? | {name, version: .version.name, releaseTime, type}]'
+
+gcloud run revisions describe "$revision" --project=fitlog-505315 --region=asia-northeast3 --format=json |
+  jq '[.spec.containers[]? | {name, envNames: [.env[]?.name],
+    secretRefs: [.env[]? | select(.valueFrom.secretKeyRef) |
+      {name, secret: .valueFrom.secretKeyRef.name, version: .valueFrom.secretKeyRef.key}]}]'
+```
+
+[Flyway 읽기 전용 확인 및 복구 검증](RUNBOOK.md#flyway-이력-증빙)
+
 ### 배포 정책 오프라인 검증
 
 웹·서버 각각 14개 변경 분류·게이트, 잘못된 이벤트 5개, 최신 SHA 확인 3개가 통과했다. 기능+문서, 테스트 전용, 인증·운영 경로 검토, 다중 커밋·병합·이름 변경, 검사 실패, 수동 실행 확인값 및 최신 SHA 조회 실패를 포함한다. 두 워크플로의 배포 잡은 동일 저장소 안에서 직렬화되고 실제 게시 직전 최신 SHA를 다시 검사한다. 운영 배포를 발생시키는 검증은 별도 승인 대상이다.
@@ -82,5 +106,5 @@ Firebase Hosting·Cloud Run 이관 및 도메인 전환은 8월 원본의 기록
 | 문서 상태 | 검토 중 |
 | 원본 출처 | Obsidian `배포.md`(2026-10-07 수정), `TASKS.md` P1, `fitlog-v2-MoC.md` 및 서버·웹 main |
 | 관련 기능 또는 Issue | M2–M4, [배포 ADR](../decisions/0003-gcp-hosting.md) |
-| 최종 검증일 | 2026-11-19 |
+| 최종 검증일 | 2026-11-20 |
 | 관련 설계 | [시스템 개요](../architecture/SYSTEM_OVERVIEW.md), [런북](RUNBOOK.md) |
