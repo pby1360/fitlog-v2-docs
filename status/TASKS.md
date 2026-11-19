@@ -151,26 +151,27 @@
 | --- | --- |
 | 작업 제목 | 핵심 사용자 흐름 자동 검증 강화 |
 | 우선순위 | [P0](BACKLOG.md#p0) |
-| 작업 상태 | `IN_PROGRESS` |
+| 작업 상태 | `PR_OPEN` |
 | 대상 저장소 | `fitlog-v2-web`, `fitlog-v2-server`(기존 테스트 재검증), `fitlog-v2-docs` |
 | 담당 에이전트 | Codex |
 | Cloud 환경 | `fitlog-v2` |
 | Cloud 실행 ID | 미확인 (현재 Codex 세션을 계속 사용) |
 | 선점 ID | `99a8452e1d9c` |
 | 작업 브랜치 | 웹 `test/v1-02-a-core-flows` |
-| 코드 PR | 해당 없음 |
-| Docs PR | 해당 없음 |
+| 코드 PR | [웹 Draft PR #44](https://github.com/pby1360/fitlog-v2-web/pull/44) |
+| Docs PR | [구현 동기화 Draft PR #11](https://github.com/pby1360/fitlog-v2-docs/pull/11) |
 | 승인 근거 | V1-02-A 작업 범위와 검증 계획을 보고한 대화에서 사용자가 “실행해”로 승인. 모의 API Playwright, 기존 서버 테스트 재검증, 검증 문서와 Draft PR에 한정 |
 | 승인 시각 | `2026-11-19T13:32:06+09:00` (대화 승인 확인 시각) |
 | 시작 시각 | `2026-11-19T13:36:02+09:00` |
 | 실행 시작 근거 | [선점 PR #9](https://github.com/pby1360/fitlog-v2-docs/pull/9) main 반영 확인 후 13:36:02 KST에 현재 fitlog-v2 Cloud 환경에서 웹 검증용 브랜치 생성 |
-| 마지막 상태 갱신 시각 | `2026-11-19T13:36:33+09:00` |
+| 마지막 상태 갱신 시각 | `2026-11-19T13:48:10+09:00` |
 | 완료 시각 | 해당 없음 |
 | 차단 사유 | 해당 없음 |
 | 관련 BACKLOG | [V1-02](BACKLOG.md#p0) |
 | 관련 PRD | [계정](../features/account/PRD.md), [운동 프로그램](../features/workout-program/PRD.md), [운동 세션](../features/workout-session/PRD.md), [운동 일지](../features/workout-history/PRD.md) |
 | 관련 Tech Spec | [계정](../features/account/TECH_SPEC.md), [운동 프로그램](../features/workout-program/TECH_SPEC.md), [운동 세션](../features/workout-session/TECH_SPEC.md), [운동 일지](../features/workout-history/TECH_SPEC.md) |
 | 완료 근거 | 해당 없음 |
+| 검증 근거 | 웹 로컬 Playwright 21개와 서버 로컬 테스트 91개 통과. 실제 OAuth·휴대폰 검증은 상위 [V1-02](BACKLOG.md#p0)에 유지 |
 
 ## 문서 추적 정보
 
