@@ -11,7 +11,7 @@
 
 5. 코드 변경으로 영향받는 원본 문서를 갱신한다. 제품 범위는 `product/`, 기능별 행위와 설계는 `features/`, 공유 기술 계약은 `architecture/`와 `api/`, 배포와 대응 절차는 `operations/`에 둔다. 다른 문서는 상대 링크로 연결한다.
 6. 유지 비용, 보안, 데이터 수명, 인터페이스 또는 아키텍처에 장기 영향을 주는 결정은 [ADR 템플릿](templates/ADR_TEMPLATE.md)으로 작성한다. 기존 결정이 바뀌면 후속 ADR을 연결한다.
-7. Draft PR이 열리면 `PR_OPEN`을 기록하고 코드 PR과 필요한 Docs PR을 상호 연결한다. 실패·추가 승인·중단 확인이 필요한 경우 `BLOCKED`와 사유를 남긴다. 상태 갱신은 별도 브랜치와 PR을 사용한다. 운영 환경 접근과 배포는 [배포 절차](operations/DEPLOYMENT.md)의 승인된 운영 담당자에게만 허용된다.
+7. Draft PR이 열리면 `PR_OPEN`을 기록하고 코드 PR과 필요한 Docs PR을 상호 연결한다. 실패·추가 승인·중단 확인이 필요한 경우 `BLOCKED`와 사유를 남긴다. 상태 갱신은 별도 브랜치와 PR을 사용한다. 에이전트는 운영 환경에 접근하거나 배포를 직접 실행하지 않는다. 승인된 `main` 변경의 자동 배포는 GitHub Actions가 수행한다. [배포 절차](operations/DEPLOYMENT.md)
 
 ## 작업 후
 
