@@ -30,6 +30,24 @@
 3. **Flyway.** 마지막으로 확인한 서버 배포 SHA와 최신 `main`의 V1–V7 마이그레이션은 동일하다. 더 이전 후보는 V4 인증 전환과 V7 개인정보 컬럼 제거 이후의 스키마를 사용할 수 있는지 확인한다. 승인된 운영 담당자가 적용 migration 버전·checksum 메타데이터만 제공하고, 데이터나 자격증명 없이 그 버전을 재현한 격리 DB에서 후보 이미지의 시작·인증·세션 기능을 검증한다. Cloud Run 트래픽 전환은 DB 스키마를 되돌리지 않는다.
 4. **훈련 기록.** 대상·영향 범위·합격 기준·원상 복구 조건을 승인 요청에 남긴다. 리비전 및 릴리스 ID, 시작/종료 시각(KST), 검증 시나리오와 결과를 기록한다. Web과 Server 모두 현재 안정 대상과 실제 롤백 실행이 `UNVERIFIED`다. [배포 증거](DEPLOYMENT.md#ops-01-배포-증거) · [Cloud Run 트래픽 관리](https://cloud.google.com/run/docs/rollouts-rollbacks-traffic-migration)
 
+### Server 이미지 복구 기준
+
+- `00003`과 `00004`(`98d6c98`)는 현재 V7 스키마의 롤백 대상에서 제외한다. 운영 담당자의 격리 DB 재현에서 기존 Member 매핑이 요구하는 `refresh_token`(V4 제거), `phone`·`birth_date`(V7 제거)가 없었고 SQLSTATE `42703`이 발생했다. 이전 소스의 Hibernate는 `ddl-auto: validate`다. 운영 트래픽 전환, 과거 컨테이너 기동 및 전체 사용자 흐름은 수행되지 않았다. [이전 소스](https://github.com/pby1360/fitlog-v2-server/commit/98d6c98b26f2511285d5eeb3f38be731e87ca794) · [V4](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/main/resources/db/migration/V4__auth_redesign.sql) · [V7](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/main/resources/db/migration/V7__privacy_minimize_member_data.sql)
+- 정상 운영 중인 `00005`와 그 digest를 1차 복구 기준 후보로 고정한다. 이미지의 격리 기동·호환성·필수 API가 통과한 뒤 복구 기준으로 확정한다. 현재 동작 상태는 별도로 [배포 증거](DEPLOYMENT.md#ops-01-배포-증거)에 기록한다.
+
+#### 00005 격리 검증 결과
+
+| 단계 | 판정과 증거 |
+| --- | --- |
+| 현재 운영 정상 | `VERIFIED`. 운영 담당자 증거에서 Ready, 트래픽 100%, HTTP 200 / UP. [운영 증거](DEPLOYMENT.md#ops-01-배포-증거) |
+| PostgreSQL 17.6·소스 호환성 | `VERIFIED`. `1154a06`의 별도 소스 복사본에서 PostgreSQL 17.6을 실행했다. V1 DDL로 기존 스키마를 만들고 `baseline-on-migrate=true` 및 baseline version 1을 주입했다. V1 BASELINE/NULL, V2–V7 성공, Hibernate validate, Flyway validate, 이전 컬럼 3개 부재를 확인했다. `./gradlew test --no-daemon --offline` 92개 통과. 기존 운동·인증 통합 검사와 기준선 전용 검사 1개를 포함한다. |
+| 로컬 V2–V7 체크섬 | 순서대로 `-1233443391`, `-1067780021`, `-1750642191`, `-1017112054`, `-1135251280`, `871620929`. 로컬 Flyway가 소스와 대조했다. 운영 담당자가 자신의 운영 기록과 소스의 일치를 보고했으며 이 작업은 운영 DB를 직접 조회하지 않았다. |
+| 실제 운영 digest 격리 재기동 | `UNVERIFIED / ACCESS`. Docker 엔진 29.9.2는 응답했다. 정확한 digest의 pull은 `asia-northeast3-docker.pkg.dev`에서 Forbidden으로 거부됐다. 컨테이너 기동·실제 이미지의 API 통합 검증·OAuth 공급자 E2E는 미수행이다. |
+
+**다음 검증 세션.** 기존 비운영 실행 환경에 `fitlog` 저장소 범위의 Artifact Registry Reader 권한(단기 자격증명 또는 운영 담당자의 적법한 실행)을 확보한다. 전체 digest로 pull하고 image inspect의 RepoDigests를 비교한다. 운영 자격정보 없이 내부 전용 네트워크의 PostgreSQL 17.6을 준비해 V1 기존 스키마와 BASELINE, V2–V7을 재현한다. 대상 digest로 prod 프로필을 기동하되 DB, 키, OAuth 설정은 테스트 값만 주입한다. 기동·헬스·Flyway·Hibernate 검사 뒤 테스트 세션, 프로그램 조회·생성, 운동 시작·세트 기록·완료·일지를 확인한다. 실제 공급자 로그인 검증 여부는 따로 기록한다. 종료 시 로컬 테스트 네트워크·컨테이너·DB만 정리한다. 예상과 다른 digest, 외부 접근 시도, 스키마 불일치, 필수 시나리오 실패가 하나라도 있으면 기준 이미지 확정을 중단한다.
+
+신규 Cloud Run 시험 서비스가 필요할 경우 비용·격리 네트워크와 서비스 계정·운영 DB 연결 차단·삭제 기준을 따로 승인받는다. 증거가 확보되기 전에는 현재 운영 중인 리비전을 유지하고 `00003`·`00004`로 트래픽을 전환하지 않는다.
+
 ### Flyway 이력 증빙
 
 운영 담당자가 승인된 읽기 전용 세션으로 Flyway 이력 테이블의 메타데이터만 확인한다. 필요한 앱 DB 권한은 대상 스키마 `USAGE`와 이력 테이블 `SELECT`다. 배포 설정에서 별도 스키마를 사용한다면 아래 `public`을 해당 스키마로 바꾼다. DB 접속 문자열이나 회원 데이터는 증빙에 포함하지 않는다.
@@ -43,7 +61,7 @@ ORDER BY installed_rank;
 ROLLBACK;
 ```
 
-성공 행의 마지막 버전과 각 체크섬을 후보 이미지의 마이그레이션과 비교한다. 현재 서버 소스의 마지막 버전은 V7이다. 실제 운영 적용 버전은 이력 조회 전까지 `UNVERIFIED`다. V7이 제거한 회원 컬럼 값은 이미지 롤백으로 복원되지 않는다. 운영 스키마 버전을 재현한 격리 DB에서 이전 이미지의 기동·스키마 검증·OAuth 세션·운동 기록 읽기/쓰기를 통과해야 후보를 안정 리비전으로 판정한다. [V7 마이그레이션](https://github.com/pby1360/fitlog-v2-server/blob/6d1c7ba7f227b3b6087e2033b1e74213f25fa708/src/main/resources/db/migration/V7__privacy_minimize_member_data.sql)
+성공 행의 마지막 버전과 각 체크섬을 후보 이미지의 마이그레이션과 비교한다. 현재 서버 소스의 마지막 버전은 V7이다. 운영 담당자의 실제 조회에서 V7 적용과 V2–V7 체크섬 일치가 보고됐다. 격리 검증은 `BASELINE` 행을 포함한 운영 적용 방식을 재현한다. V7이 제거한 회원 컬럼 값은 이미지 롤백으로 복원되지 않는다. 운영 스키마 버전을 재현한 격리 DB에서 이전 이미지의 기동·스키마 검증·OAuth 세션·운동 기록 읽기/쓰기를 통과해야 후보를 안정 리비전으로 판정한다. [V7 마이그레이션](https://github.com/pby1360/fitlog-v2-server/blob/6d1c7ba7f227b3b6087e2033b1e74213f25fa708/src/main/resources/db/migration/V7__privacy_minimize_member_data.sql)
 
 운영 지표와 사용자 흐름의 관측 상태는 [백로그](../status/BACKLOG.md)에서 추적한다.
 

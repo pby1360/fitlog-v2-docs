@@ -59,7 +59,7 @@ React·JPA·배포의 옛 기술 기록과 현재 구성의 차이는 [프런트
 
 ## 확인 필요
 
-- **M3 배포 및 운영 환경.** 웹 `4ae88e1`, 서버 `6d1c7ba`의 최신 main 검사는 성공했고 두 deploy 잡은 생략됐다. 과거 성공 실행의 웹 게시 SHA와 서버 리비전·이미지 digest는 확인했다. 현재 운영 릴리스, V1-04 포함 여부와 롤백 검증은 [OPS-01](BACKLOG.md#p0)에 남긴다. [배포 증거](../operations/DEPLOYMENT.md#ops-01-배포-증거)
+- **M3 배포 및 운영 환경.** 웹 Live `49b946ad2b8aa4d8`에서 V1-04 미반영을 확인했다. 서버 `00005-8tn`은 트래픽 100%, HTTP 200 / UP이며 운영 Flyway V7이 확인됐다. 두 최신 GitHub Actions의 deploy 잡은 생략됐다. 서버 `00003`·`00004`는 복구 제외이며, `00005` 격리 재기동과 Web 복구 적합성은 남는다. [배포 증거](../operations/DEPLOYMENT.md#ops-01-배포-증거) · [복구 기준](../operations/RUNBOOK.md#server-이미지-복구-기준)
 - **Docs 동기화.** Web → Docs App 인증과 전달, 이미 병합된 Docs #11의 변경 없는 종료를 실제 Actions에서 확인했다. Server 발신과 신규 Docs PR의 실전 자동 병합이 남는다. [후속 검증](../operations/DOCS_SYNC.md#docs-sync-02-후속-검증)
 - **DoD-1과 사용자 경험.** 승인된 정책 게시·문의처, 공급자 로그인·탈퇴, 실제 휴대폰의 첫 기록 3분, 가입 10명과 2주 유지 5명, 오류·이탈 관측, 개입 없이 1주 운영은 출시 판정 근거가 필요하다. [출시 기준](../product/RELEASE_CRITERIA.md), [V1-02·03](BACKLOG.md#p0), [V1-06·07](BACKLOG.md#p1)
 - **제품 범위.** 개인 종목 관리, 기본 대시보드, 선택형 프로필은 구현됐다. 이를 공식 출시 범위로 확정한 승인 근거와 0세트 완료율 기준은 [V1-11·12](BACKLOG.md#p2)에서 확인한다. [제품 요구사항](../product/REQUIREMENTS.md)
