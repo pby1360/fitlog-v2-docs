@@ -194,7 +194,7 @@
 | 실행 시작 근거 | 해당 없음 |
 | 마지막 상태 갱신 시각 | `2026-11-19T16:51:22+09:00` |
 | 완료 시각 | 해당 없음 |
-| 차단 사유 | 현재 Hosting 릴리스, Cloud Run 트래픽·이미지 보존 및 Flyway 적용 메타데이터 미확인 |
+| 차단 사유 | Server `00005` 동일 digest의 격리 재기동·핵심 API 검증 완료. Web Live 해시·안정 복구 릴리스, 실제 OAuth와 운영 트래픽 롤백 훈련이 남음. [복구 증거](../operations/RUNBOOK.md#00005-격리-검증-결과) |
 | 관련 BACKLOG | [OPS-01](BACKLOG.md#p0) |
 | 관련 PRD | 해당 없음 |
 | 관련 Tech Spec | [배포](../operations/DEPLOYMENT.md), [런북](../operations/RUNBOOK.md) |
@@ -221,7 +221,7 @@
 | 실행 시작 근거 | 해당 없음 |
 | 마지막 상태 갱신 시각 | `2026-11-19T16:51:22+09:00` |
 | 완료 시각 | 해당 없음 |
-| 차단 사유 | 발신 토큰에 App ID가 전달되지 않음. 설정 범위·두 App 설치·권한과 실제 교차 저장소 검증 미확인 |
+| 차단 사유 | Web 발신·Docs 수신·중복 종료 검증 완료. 실제 Server 발신 및 신규 Docs 자동 병합은 승인된 구현 PR 대기. [검증 계획](../operations/DOCS_SYNC.md#docs-sync-02-후속-검증) |
 | 관련 BACKLOG | 해당 없음. [동기화 구축 이력](#docs-sync-01) |
 | 관련 PRD | 해당 없음 |
 | 관련 Tech Spec | [Docs 동기화](../operations/DOCS_SYNC.md) |

@@ -11,7 +11,7 @@
 | V1-01 약관·개인정보 공개 문구와 문의처 | 두 경로에 운영자명과 이메일 자리표시자가 보인다. [약관](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/src/pages/legal/TermsPage.tsx), [개인정보](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/src/pages/legal/PrivacyPolicyPage.tsx) | 제품 담당자가 운영자·연락처·처리 항목·보관 정책을 확정한다. 공개 문구에 영향을 주는 V1-11 프로필 결정도 이 단계에서 반영한다. 두 페이지에서 승인 문구와 유효한 문의 방법을 제공한다. | 검토본과 페이지를 대조한다. 모바일 크기에서 홈 푸터 링크와 직접 진입을 확인한다. 실제 게시 여부와 문의 경로 테스트는 승인된 담당자가 증거를 기록한다. |
 | V1-02 가입부터 첫 기록 및 탈퇴까지 검증 | [V1-02-A](TASKS.md#v1-02-a)의 모의 API Playwright와 기존 서버 통합 테스트는 로컬에서 통과했다. 실제 Google·Kakao OAuth 및 물리 휴대폰 종단 간 검증이 남는다. [웹 Draft PR](https://github.com/pby1360/fitlog-v2-web/pull/44), [수동 체크리스트](../features/account/TECH_SPEC.md#실제-oauth-및-휴대폰-수동-검증-체크리스트), [계정 설계](../features/account/TECH_SPEC.md), [세션 설계](../features/workout-session/TECH_SPEC.md) | Google·Kakao 각각 로그인·재로그인·갱신·로그아웃, 프로그램→세트 기록·휴식·완료→일지, 탈퇴·재접속 및 409 안내의 확인 결과가 있다. | 승인된 테스트 계정으로 실제 휴대폰에서 시나리오를 실행한다. 독립 테스트 데이터로 204 파기 및 409 롤백을 재검증하고, 기기·커밋·결과를 기록한다. |
 | V1-03 오류·이탈 관측 | 헬스체크·요청 ID는 구현됐다. 가입·생성·세션 완료 이벤트, GA4/Plausible·Sentry·구조화 로그는 기존 후보이다. [요청 ID 필터](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/src/main/java/com/fitlog/fitlogv2server/global/logging/RequestIdFilter.java), [런북](../operations/RUNBOOK.md) | 승인된 도구로 가입→프로그램 생성→세션 완료 전환과 오류를 볼 수 있다. 요청 ID로 오류를 찾을 수 있으며 확인 담당자가 정해진다. | 비운영 테스트 이벤트와 오류를 발생시켜 대시보드 집계와 요청 ID 연계를 대조한다. 승인된 담당자가 운영 관측 대시보드의 근거를 남긴다. |
-| OPS-01 양쪽 배포와 롤백 증거 | 양쪽의 최신 CI와 과거 성공 배포는 확인했다. 실제 운영 릴리스·리비전 및 롤백 후보는 읽기 권한이 없어 미확인이다. [배포 증거](../operations/DEPLOYMENT.md#ops-01-배포-증거) | 마지막 성공 실행 URL, 실제 배포 SHA/릴리스, 안정 롤백 대상과 Flyway 호환성 검토가 기록된다. | 승인된 담당자가 운영 릴리스·트래픽·이미지 보존을 Actions와 대조한다. 복구는 격리 환경 검증 또는 승인된 훈련 기록으로 확인한다. [런북](../operations/RUNBOOK.md#ops-01-롤백-검증) |
+| OPS-01 양쪽 배포와 롤백 증거 | 운영 Hosting Live·Cloud Run 리비전·Flyway V7을 확인했다. Server `00005` 격리 재기동·핵심 운동 API는 `VERIFIED`, `00003`·`00004`는 V7 비호환으로 복구에서 제외했다. [배포 증거](../operations/DEPLOYMENT.md#ops-01-배포-증거) | Server 안정 복구 digest와 Flyway 호환 증거는 충족했다. Web 라이브 해시·안정 복구 릴리스, 실제 OAuth 및 운영 트래픽 롤백 훈련 검증이 남아 작업 전체는 미완료다. | Web Live 해시 대조와 실제 캐시·콜백 검증, 승인 후 운영 훈련 기록을 확인한다. 장기 보존 정책은 사용자 결정으로 보류된 OPS-02에서 추적한다. [런북](../operations/RUNBOOK.md#ops-01-롤백-검증) |
 
 ## P1
 
@@ -22,7 +22,7 @@
 | V1-06 가입 후 첫 기록 3분 및 온보딩 | 완성된 프로그램·세션 경로가 있다. 신규 가입자의 프로그램 만들기 유도, 2~3개 분할 프리셋, 실측은 기존 후속 작업이다. [제품 비전](../product/VISION.md), [제품 로드맵](../product/ROADMAP.md) | 승인된 온보딩 범위에서 새 사용자가 가입 후 루틴을 만들고 3분 안에 첫 세트를 저장한다. 목표에 미달한 경우 병목을 기록하고 재측정한다. | 새 계정과 휴대폰으로 가입 완료→첫 세트 저장까지 시간을 재고, 단계별 소요 및 막히는 지점을 남긴다. 출시 기준의 로그인 후 측정 범위도 함께 기록한다. |
 | V1-07 첫 사용자와 v1 출시 판정 | V1-01~03, OPS-01의 출시 전 증거와 V1-06의 첫 사용 결과가 선행한다. [DoD-1](../product/RELEASE_CRITERIA.md#v1-정식-출시-dod-1) | 기존 친분이 없는 가입자 10명 중 5명이 2주 이상 운동을 기록하고, 운영 개입 없이 1주 정상 동작을 포함한 DoD-1의 네 기준을 근거와 함께 충족한다. | 기간·대상 집계 기준과 운영 개입/장애 기록을 대조한다. 관측 대시보드·정책·탈퇴 증거를 함께 검토하고, 요건별 판정 및 사용자 피드백을 남긴다. |
 | QUAL-01 웹 PR 회귀 확인 | 현재 웹 PR 잡에 린트·타입 검사가 있다. 빌드는 배포 잡에 있다. Playwright 테스트가 추가됐으며 PR 검사 연결은 남아 있다. [웹 워크플로](https://github.com/pby1360/fitlog-v2-web/blob/3d6412ec605ed6f83f86b1e51d6b740df9db25d2/.github/workflows/deploy.yml#L16-L82), [스크립트](https://github.com/pby1360/fitlog-v2-web/blob/6f8cc4c930bb8872cfc4ada71d2efabbbbf274e1/package.json#L6-L12) | 배포 없는 PR 잡에서 빌드 산출물과 핵심 흐름 회귀를 검증한다. 도구 선택은 구현 시 결정한다. | 테스트 PR에서 빌드·회귀 체크가 성공하고 의도한 실패에는 PR 체크가 실패하는지 확인한다. 배포 잡 로그가 실행되지 않았는지 검토한다. |
-| OPS-02 이미지 보존·비용·DB 가용성 | 8월의 2개 보존은 과거 계획이다. 코드 정책은 최근 6개 보존 및 14일 경과 삭제다. [현재 정책](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/artifact-cleanup-policy.json), [배포](../operations/DEPLOYMENT.md) | 실제 정리 설정, 롤백 버전 보존, 예산 경보, 인스턴스·DB 풀 상한, 무료 DB 일시정지 대응이 기록된다. 코드와 운영 설정 차이의 처리 여부를 결정한다. | 승인된 담당자가 설정·보존 버전과 경보 기록을 대조하고, 장애 없이 확인할 수 있는 복구 증거를 남긴다. |
+| OPS-02 이미지 보존·비용·DB 가용성 | 8월의 2개 보존은 과거 계획이다. 코드 정책은 최근 6개 버전 보존 및 14일 경과 삭제다. 검증된 `00005`의 장기 보존 정책은 사용자 결정으로 보류됐으며 적용되지 않았다. [현재 정책](https://github.com/pby1360/fitlog-v2-server/blob/1154a06268b0336ab5154c9c2c0d8b405bad8717/artifact-cleanup-policy.json) · [보존 제안](../operations/DEPLOYMENT.md#안정-이미지-보존-승인안) | 실제 정리 설정, 롤백 버전 보존, 예산 경보, 인스턴스·DB 풀 상한, 무료 DB 일시정지 대응이 기록된다. 코드와 운영 설정 차이의 처리 여부를 결정한다. | 승인된 담당자가 설정·보존 버전과 경보 기록을 대조하고, 장애 없이 확인할 수 있는 복구 증거를 남긴다. |
 
 ## P2
 
@@ -59,5 +59,5 @@
 | 문서 상태 | 검토 중 |
 | 원본 출처 | 최초 이관 PR #1, Obsidian `TASKS.md`·`ROADMAP.md`·`fitlog-v2-MoC.md`, 이번 코드 및 실행 검증 |
 | 관련 기능 또는 Issue | M3–M6, DoD-1·2, [기능 목록](../features/README.md) |
-| 최종 검증일 | 2026-11-19 |
+| 최종 검증일 | 2026-11-20 |
 | 관련 설계 | [현재 상태](CURRENT_STATUS.md), [제품 로드맵](../product/ROADMAP.md), [배포](../operations/DEPLOYMENT.md) |
