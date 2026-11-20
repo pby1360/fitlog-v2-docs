@@ -46,8 +46,9 @@ V1-04의 병합 `6f8cc4c`에는 당시 CI 생략 표시가 있었다. 운영 담
 | `VERIFIED` 마지막으로 확인한 배포 성공 | `2026-11-13T00:19:17+09:00`에 `3d6412ec605ed6f83f86b1e51d6b740df9db25d2`를 사이트 `fitlog-505315-5af8e`에 게시했다. [배포 실행](https://github.com/pby1360/fitlog-v2-web/actions/runs/43246172583/job/131280123077) | `2026-10-07T23:13:37+09:00`에 `1154a06268b0336ab5154c9c2c0d8b405bad8717` 이미지로 `fitlog-server-00005-8tn`을 배포했다. 이미지 digest는 `sha256:2eb78030502b7f98e4e73def7283a4f2d13573a4232d7fe320007499cf169729`다. [배포 실행](https://github.com/pby1360/fitlog-v2-server/actions/runs/37634291023/job/112836889433) |
 | `VERIFIED` 마지막 성공 배포 SHA와 현재 Git 차이 | V1-04 캘린더는 마지막 확인 성공 배포 SHA에 포함되지 않았다. 최신 `main`에는 캘린더, 빌드 입력, 테스트 및 워크플로 변경이 있다. 이후 확인한 Actions는 배포를 생략했다. [Git 비교](https://github.com/pby1360/fitlog-v2-web/compare/3d6412ec605ed6f83f86b1e51d6b740df9db25d2...4ae88e1333ef1d7d2af2d436f1a8df8ea2c2d5d6) | 서버 `main`과 마지막 확인 배포 SHA 사이 변경은 워크플로·스크립트·개발 지침이다. 서버 실행 코드와 Flyway V1–V7 파일 차이는 없다. [Git 비교](https://github.com/pby1360/fitlog-v2-server/compare/1154a06268b0336ab5154c9c2c0d8b405bad8717...6d1c7ba7f227b3b6087e2033b1e74213f25fa708) |
 | `VERIFIED` 11월 20일 운영 관측 | `fit2log.com` → `fitlog-505315-5af8e`. Live `49b946ad2b8aa4d8`, 직전 Live `8106f0d437872a4e`. V1-04 개선은 현재 번들에 미반영이다. 운영 담당자 제공 증거. [Hosting 콘솔](https://console.firebase.google.com/project/fitlog-505315/hosting) | `fitlog-server-00005-8tn`이 Ready 및 트래픽 100%, 헬스체크 HTTP 200 / UP이다. 운영 담당자 제공 Cloud Shell 출력·헬스 기록. [Cloud Run 리비전](https://console.cloud.google.com/run/detail/asia-northeast3/fitlog-server/revisions?project=fitlog-505315) |
-| `UNVERIFIED` 추가 확인 | 배포 시각·사이트·Actions 기록을 근거로 Live를 `3d6412e`와 연결했다. 동일 번들 hash·파일 manifest 대조와 직전 릴리스의 기능·캐시 검증이 남는다. | 실행 중인 digest는 `sha256:2eb78030502b7f98e4e73def7283a4f2d13573a4232d7fe320007499cf169729`로 배포 로그와 일치한다. 동일 digest의 격리 재기동, env·Secret 참조의 후보별 비교와 안정 복구 경로는 별도 검증한다. |
-| `UNVERIFIED` 롤백 실행과 서비스 검증 | 이전 호환 릴리스와 앱 셸·PWA 캐시 확인, 실제 휴대폰에서 캘린더 월 변경 및 일지 상세 복귀. | 이전 리비전·이미지 보존, 실제 스키마 역호환성, 헬스체크·Google/Kakao 로그인·세션 생성·기록 조회. |
+| `VERIFIED` Server 격리 복구 | Web은 두 소스 빌드의 로컬 복구 훈련을 통과했다. [Web 승인안](#web-v1-04-배포-및-복구-승인안) | `00005`와 동일한 운영 digest를 Google Cloud Shell의 격리 Docker 네트워크에서 확인했다. Spring Boot 기동, PostgreSQL 17.6/Flyway·Hibernate와 Health, 테스트 인증 및 운동 API가 통과했다. [Server 격리 복구 검증](RUNBOOK.md#00005-격리-검증-결과) |
+| `UNVERIFIED` 추가 확인 | Live와 `3d6412e`의 동일 번들 해시·파일 manifest 대조와 직전 Hosting 릴리스의 복구 적합성 검증이 남는다. | 리비전별 환경 변수 및 Secret 참조 비교와 실제 Google/Kakao OAuth가 남는다. |
+| `UNVERIFIED` 운영 롤백 훈련 | 운영 Hosting 릴리스 복원 후 앱 셸·PWA 캐시, 실제 휴대폰 캘린더 월 변경·일지 상세 복귀를 확인한다. | 검증된 `00005` digest의 현재 보존을 확인한 뒤 승인된 운영 트래픽 전환 훈련을 별도로 평가한다. |
 
 승인된 담당자는 **Firebase Console → Hosting → 사이트 → Release history**에서 `fit2log.com`에 연결된 사이트의 현재 live와 직전 릴리스의 ID·시각을 조회한다. Actions 로그와 시각·사이트를 대조한다. SHA를 직접 노출하지 않는 릴리스는 버전의 파일 manifest나 알려진 빌드 산출물의 해시 등 추가 근거로 연결한다. 시각만 맞는 경우 SHA는 미확인으로 남긴다. V1-04 미반영이 운영에서 확인되면 현재 `main`을 배포할지 별도 승인으로 결정한다. [Firebase Hosting 릴리스 관리](https://firebase.google.com/docs/hosting/manage-hosting-resources)
 
@@ -81,7 +82,7 @@ gcloud artifacts repositories list-cleanup-policies fitlog --project=fitlog-5053
 | B. 별도 복구 저장소 | 삭제 정책·권한을 격리할 수 있다. digest 복제·검증과 별도 저장소 접근 절차가 필요하다. | 중복 저장과 위치 간 전송 비용이 생길 수 있다. 원래 저장소의 보호와 Pull 경로를 확인한 뒤 복제 경로를 해제한다. |
 | C. 현재 전체 보존 기간 확대 | 구현이 간단하고 CI 변경은 없다. 트래픽을 받는 특정 digest가 보존된다는 보장이 약하다. | 일반 이미지까지 의도치 않게 보존해 사용량이 늘 수 있다. 원래 6개·14일을 복원하기 전 필요한 digest를 별도 보존한다. |
 
-**권장안 A.** `fitlog-server` 패키지 범위와 `recovery-` 태그 접두어를 추가 Keep 조건으로 사용한다. 기존 최근 6개·14일 규칙을 유지한다. 운영상 보호 후보는 검증된 현재 기준과 직전 기준 두 digest 이내로 관리한다. 개별 태그와 현재 기준 해제에는 후보 교체 및 승인이 필요하다. 00005 컨테이너 검증까지 시간이 필요한 경우 현재 운영 중인 digest를 우선 보호할지는 운영 담당자가 승인하며 복구 테스트 판정은 유지한다. [정책 Draft PR](https://github.com/pby1360/fitlog-v2-server/pull/44)
+**권장안 A · 사용자 결정으로 보류.** `fitlog-server` 패키지 범위와 `recovery-` 태그 접두어를 추가 Keep 조건으로 사용하는 미적용 제안이다. 기존 최근 6개·14일 규칙이 적용 중이다. 재검토 시 검증된 `00005` digest의 보존 상태를 확인한 뒤 태그·dry-run·실제 적용을 각각 승인받는다. [정책 Draft PR](https://github.com/pby1360/fitlog-v2-server/pull/44)
 
 **비용 추산.** 해당 Google Cloud 요율과 실제 청구 데이터를 확인한다. 표준 저장 초과분을 예시로 GB당 월 USD 0.10으로 잡으면, 보존으로 늘어난 순저장량이 2 GB일 때 월 약 USD 0.20이다. 이미지별 공유 레이어, 무료 사용량, 전송 비용에 따라 달라지므로 실제 이미지 크기와 별도로 표기한다. [가격표](https://cloud.google.com/artifact-registry/pricing)
 
@@ -89,7 +90,7 @@ gcloud artifacts repositories list-cleanup-policies fitlog --project=fitlog-5053
 
 ### OPS-01 읽기 전용 증빙 형식
 
-2026-11-20 KST 후속 조회에서도 Web `4ae88e1`·Server `6d1c7ba` 이후의 성공 배포 실행은 확인되지 않았다. 두 최신 `main` 실행의 deploy 잡은 생략됐다. 이 작업 환경에는 GCP 인증이나 gcloud CLI가 없었다. 운영 담당자 제공 증거로 Hosting 릴리스·Cloud Run 트래픽을 확인했다. 현재 CI 및 이전 배포 로그는 위 표에 연결했다. 실제 롤백 후보의 기동·호환성은 별도 확인 대상이다. [Web main CI](https://github.com/pby1360/fitlog-v2-web/actions/runs/44462060250) · [Server main CI](https://github.com/pby1360/fitlog-v2-server/actions/runs/44450257913)
+2026-11-20 KST 후속 조회에서도 Web `4ae88e1`·Server `6d1c7ba` 이후의 성공 배포 실행은 확인되지 않았다. 두 최신 `main` 실행의 deploy 잡은 생략됐다. 이 작업 환경에는 GCP 인증이나 gcloud CLI가 없었다. 운영 담당자 제공 증거로 Hosting 릴리스·Cloud Run 트래픽을 확인했다. 현재 CI 및 이전 배포 로그는 위 표에 연결했다. Server 격리 재기동 결과와 실제 운영 롤백 훈련의 판정은 위 표에 각각 기록했다. [Web main CI](https://github.com/pby1360/fitlog-v2-web/actions/runs/44462060250) · [Server main CI](https://github.com/pby1360/fitlog-v2-server/actions/runs/44450257913)
 
 - **Hosting 목록.** 담당자가 Hosting Viewer 등 `firebasehosting.releases.list` 권한으로 현재 사이트와 이전 릴리스의 `name`, `version.name`, `releaseTime`, `type`을 수집한다. 도메인 연결과 실시간 live는 콘솔에서도 대조한다. ID와 시각을 남기고, Git SHA 대응 근거가 없는 경우 그 대응은 미확인으로 둔다. [Hosting releases.list](https://firebase.google.com/docs/reference/hosting/rest/v1beta1/sites.releases/list)
 - **Cloud Run 설정.** 배포 전후 또는 후보 리비전에서 환경 변수 이름과 Secret Manager 참조를 비교한다. 값이 들어 있는 원본 응답은 공유하지 않는다. 기존 트래픽·이미지 보존 명령과 이 비교 결과를 함께 기록한다.
@@ -136,7 +137,7 @@ Firebase Hosting·Cloud Run 이관 및 도메인 전환은 8월 원본의 기록
 | 추적 정보 | 내용 |
 | --- | --- |
 | 문서 상태 | 검토 중 |
-| 원본 출처 | Obsidian `배포.md`(2026-10-07 수정), `TASKS.md` P1, `fitlog-v2-MoC.md` 및 서버·웹 main |
+| 원본 출처 | Obsidian `배포.md`(2026-10-07 수정), `TASKS.md` P1, `fitlog-v2-MoC.md` 및 서버·웹 main, 2026-11-20 운영 담당자 제공 이미지 복구 검증 결과 |
 | 관련 기능 또는 Issue | M2–M4, [배포 ADR](../decisions/0003-gcp-hosting.md) |
 | 최종 검증일 | 2026-11-20 |
 | 관련 설계 | [시스템 개요](../architecture/SYSTEM_OVERVIEW.md), [런북](RUNBOOK.md) |

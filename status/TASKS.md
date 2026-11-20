@@ -194,7 +194,7 @@
 | 실행 시작 근거 | 해당 없음 |
 | 마지막 상태 갱신 시각 | `2026-11-19T16:51:22+09:00` |
 | 완료 시각 | 해당 없음 |
-| 차단 사유 | 운영 관측 증거 확보. Hosting 빌드 해시 대조·안정 복구 릴리스 및 Server 정확 digest 격리 기동 검증이 남음. [배포 증거](../operations/DEPLOYMENT.md#ops-01-배포-증거) |
+| 차단 사유 | Server `00005` 동일 digest의 격리 재기동·핵심 API 검증 완료. Web Live 해시·안정 복구 릴리스, 실제 OAuth와 운영 트래픽 롤백 훈련이 남음. [복구 증거](../operations/RUNBOOK.md#00005-격리-검증-결과) |
 | 관련 BACKLOG | [OPS-01](BACKLOG.md#p0) |
 | 관련 PRD | 해당 없음 |
 | 관련 Tech Spec | [배포](../operations/DEPLOYMENT.md), [런북](../operations/RUNBOOK.md) |
