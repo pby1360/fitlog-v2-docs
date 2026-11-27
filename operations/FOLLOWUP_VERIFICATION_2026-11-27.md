@@ -62,6 +62,41 @@
 3. 사용자가 보류한 **V1-01은 자동 착수하지 않는다.** 공개 법률 고지 미확정은 출시 차단 요인으로 유지한다.
 4. 각 구현은 기존 `AGENTS.md`, `fitlog-loop` 및 [선점 절차](DEVELOPMENT_WORKFLOW.md#승인과-선점)를 따른다. 대상 변경·운영 영향·정책 승인은 사용자의 별도 결정이 필요하다.
 
+## 7. 2026-11-27 후속 실측
+
+이 점검은 아래 원격 `main`의 격리 복사본에서 수행했다. Docs의 OPS-01과 DOCS-SYNC-02는 `PROPOSED`, V1-02-A는 `DONE`이고 실행 대기열은 0건이다. V1-02와 V1-03은 P0 백로그에 있다. 열린 후속 PR은 이 조사 Draft #19이며 열린 Web·Server 코드 PR은 조회되지 않았다. 별도 Codex Cloud 실행 목록은 확인하지 못했다. [TASKS](../status/TASKS.md) · [BACKLOG](../status/BACKLOG.md#p0)
+
+| 저장소 | 검증한 원격 `main` | 실제 실행 결과 |
+| --- | --- | --- |
+| Docs | [`e0b1b546ad51b3d57e8c2cf2b44c8effe7c76d2c`](https://github.com/pby1360/fitlog-v2-docs/commit/e0b1b546ad51b3d57e8c2cf2b44c8effe7c76d2c) | 동기화 회귀 24개, 작업 대기열 테스트 22개 통과. 해당 커밋을 대상으로 스키마와 승인 상태 검사 통과 |
+| Web | [`4ae88e1333ef1d7d2af2d436f1a8df8ea2c2d5d6`](https://github.com/pby1360/fitlog-v2-web/commit/4ae88e1333ef1d7d2af2d436f1a8df8ea2c2d5d6) | Node 20.20.2에서 `npm ci`, 린트(기존 경고 3건), 타입 검사, 로컬 API 주소로 빌드, Playwright 21개 통과. 브라우저 다운로드가 차단돼 기존 설정의 실행 파일 지정 옵션으로 시스템 Chromium을 사용했다. [Web main CI](https://github.com/pby1360/fitlog-v2-web/actions/runs/44462060250) |
+| Server | [`445e0999c7d4e61c839388b69bc38f625b2378f4`](https://github.com/pby1360/fitlog-v2-server/commit/445e0999c7d4e61c839388b69bc38f625b2378f4) | JDK 21.0.13에서 `./gradlew test --no-daemon` 실행. 내장 PostgreSQL을 사용한 통합 테스트 포함 91개 통과, 실패·건너뜀 0개. [Server main CI](https://github.com/pby1360/fitlog-v2-server/actions/runs/45988479704) |
+
+### OPS-01 배포 및 복구
+
+- 마지막으로 확인된 성공 Firebase 게시 SHA는 `3d6412ec605ed6f83f86b1e51d6b740df9db25d2`다. Web `main`은 10커밋 앞서며 V1-04를 포함한다. 11월 20일 수동 실행은 `confirm_deploy=false`가 원인이었고 게시 잡을 시작하지 않았다. 실제 병합 범위에서 Web #44는 `tests`, Server #44는 `review`로 분류됨을 로컬에서 재현했다. 수동 확인 `false`는 거부되고 `true`는 배포 후보로 분류됨도 로컬 스크립트로 확인했다. [Web 커밋 비교](https://github.com/pby1360/fitlog-v2-web/compare/3d6412ec605ed6f83f86b1e51d6b740df9db25d2...4ae88e1333ef1d7d2af2d436f1a8df8ea2c2d5d6) · [마지막 성공 게시](https://github.com/pby1360/fitlog-v2-web/actions/runs/43246172583) · [수동 실행 실패](https://github.com/pby1360/fitlog-v2-web/actions/runs/44727034127)
+- 마지막으로 확인한 Cloud Run 게시 SHA는 `1154a06268b0336ab5154c9c2c0d8b405bad8717`이며 로그의 리비전은 `fitlog-server-00005-8tn`이다. 그 SHA부터 현재 Server `main`까지 애플리케이션 코드와 Flyway 파일의 변경은 없다. #44의 `recovery-` 보존 파일 변경은 병합됐으며 운영 Registry 정책과 태그 적용 여부는 조회하지 못했다. [Cloud Run 배포 로그](https://github.com/pby1360/fitlog-v2-server/actions/runs/37634291023) · [Server 커밋 비교](https://github.com/pby1360/fitlog-v2-server/compare/1154a06268b0336ab5154c9c2c0d8b405bad8717...445e0999c7d4e61c839388b69bc38f625b2378f4)
+- 로컬 빌드의 `/history/42`와 `/auth/callback` 직접 요청은 SPA 셸을 반환했다. Chromium에서 서비스 워커 활성화, 새로고침 후 제어, 앱 셸과 해시가 붙은 자산의 캐싱을 확인했다. Firebase 설정 파일에서 SPA 재작성과 자산·서비스 워커 캐시 지시문을 확인했다. 실제 Live 배포 간 캐시 갱신은 미검증이다.
+- Hosting 관리 API, Cloud Run, Artifact Registry와 공개 웹 호스트 요청은 실행 환경 프록시가 거부했다. 11월 20일 운영 담당자 관측의 Hosting Live `49b946ad2b8aa4d8`와 직전 `8106f0d437872a4e`, Cloud Run `00005-8tn` 트래픽 100%, 운영 이미지 격리 재기동 증거는 보존한다. 현재 Live의 파일 해시와 SHA 대응, 직전 릴리스 복구 적합성, 최신 Cloud Run 트래픽과 digest 보존 여부는 미확인이다. 운영 담당자의 읽기 전용 출력으로 먼저 대조한다. [배포 증거](DEPLOYMENT.md#ops-01-배포-증거) · [복구 검증](RUNBOOK.md#00005-격리-검증-결과)
+
+### V1-02 자동 검증과 남은 실기기 검증
+
+- Web은 모의 OAuth 콜백·일회성 코드 교환·실패/만료, 동시 401 갱신 및 실패, 로그아웃, 탈퇴 확인과 204·409를 검증했다. 준비된 프로그램 선택부터 세션 시작, 세트 저장 실패 후 재시도, 휴식, 완료, 일지 상세로 이어지는 흐름도 통과했다. Server는 공급자 식별자와 이메일 충돌, 갱신 토큰 회전과 기기별 세션, 탈퇴 시 데이터 파기 및 409 트랜잭션 롤백을 테스트했다. [Web 검증 코드](https://github.com/pby1360/fitlog-v2-web/tree/4ae88e1333ef1d7d2af2d436f1a8df8ea2c2d5d6/tests) · [Server 검증 코드](https://github.com/pby1360/fitlog-v2-server/tree/445e0999c7d4e61c839388b69bc38f625b2378f4/src/test)
+- 브라우저의 실제 프로그램 생성부터 시작하는 전체 흐름, 모바일 백그라운드·네트워크 재접속, 탭 간 갱신, 실제 OAuth 공급자 콜백과 물리 기기 검증이 남았다. 승인된 비운영 Web/API/격리 DB, 공급자별 전용 계정, iOS Safari·Android Chrome을 준비한다. 각 공급자 첫 로그인·취소·재로그인 → 만료/갱신 → 프로그램 직접 생성 → 시작/첫 세트/휴식/복귀/완료 → 일지 실측 확인 → 로그아웃/재접속 순으로 확인한다. 탈퇴는 별도 전용 계정의 204와 격리 충돌 데이터의 409를 확인한다. 기기·OS·브라우저·SHA·KST 시각 및 결과만 기록한다. [공식 수동 체크리스트](../features/account/TECH_SPEC.md#실제-oauth-및-휴대폰-수동-검증-체크리스트)
+
+### DOCS-SYNC-02 발신·수신·중복 검증
+
+- 두 발신 워크플로의 실제 검사 스텝에 GitHub API 모의를 연결해 저장소별 정상 트레일러, 트레일러 누락, PR 본문 필드 삽입 차단을 검증했다(6개). Server #44의 실제 병합 메시지에는 승인 트레일러가 없었으며 토큰 발급·Dispatch 정상 생략을 Actions에서 확인했다. [Server 발신 실행](https://github.com/pby1360/fitlog-v2-server/actions/runs/45988480781)
+- Web 발신 및 Docs 수신의 기존 성공 실행을 확인했다. Docs 수신 로그에는 이미 수동 병합한 #11을 확인하고 종료한 결과가 남았다. 실제 Server 발신과 신규 Docs PR 자동 병합은 미검증이다. Docs PR은 개발 루프에서 준비하고, Actions는 승인된 기존 PR을 찾는다. [Web 발신 실행](https://github.com/pby1360/fitlog-v2-web/actions/runs/44462060315/attempts/2) · [Docs 수신 로그](https://github.com/pby1360/fitlog-v2-docs/actions/runs/44508885506/job/135510769314)
+- 수신 회귀 테스트에서 승인된 SHA 1회 병합, 중복 이벤트 무변경, SHA·승인 불일치, 문서 범위, 검증 중 base 이동 차단을 확인했다. 같은 코드 PR의 실행은 Actions가 직렬화한다. 다른 Docs PR이 마지막 base 확인과 병합 API 호출 사이에 병합되는 경우까지 보장하려면 최신 base를 강제하는 보호 규칙 또는 저장소 단위 직렬 병합이 필요하다. 실제 보호·App 설치 설정은 관리자 확인이 필요하다. 승인된 비운영 PR에서 SHA를 고정하고 최초 자동 병합과 재전송 무변경을 실측한다. [동기화 운영 절차](DOCS_SYNC.md#docs-sync-02-후속-검증)
+
+### V1-03 최소 관측 스키마 초안
+
+- 현재 서버 Request ID 필터·Actuator와 프런트엔드 API 오류에 요청 단위 추적 근거가 있다. 서버 로그 일부에는 내부 회원·세션 ID나 DB의 원문 예외 메시지가 남을 수 있으며, Web의 네트워크 오류와 콜백 중단은 서버 로그만으로 확인할 수 없다. 수집 전 오류 필드를 허용 목록으로 제한한다. [요청 ID 필터](https://github.com/pby1360/fitlog-v2-server/blob/445e0999c7d4e61c839388b69bc38f625b2378f4/src/main/java/com/fitlog/fitlogv2server/global/logging/RequestIdFilter.java) · [서버 예외 처리](https://github.com/pby1360/fitlog-v2-server/blob/445e0999c7d4e61c839388b69bc38f625b2378f4/src/main/java/com/fitlog/fitlogv2server/global/exception/GlobalExceptionHandler.java)
+- 이벤트는 `login_result`, `signup_result`, `program_created`, `first_set_recorded`, `workout_completed`, `api_error`로 제안한다. 공통 필드는 `schema_version`, 서버 관측 시각, 환경, 앱 릴리스이며, 인증은 제공자와 성공/실패/취소, 오류는 허용된 작업명·오류 코드·HTTP 상태 및 요청 ID만 사용한다. 성공 이벤트는 커밋된 도메인 전이 기준으로 중복을 제거한다. 원문 URL·쿼리·헤더·본문, 이메일, IP, 회원·세션 식별자, OAuth 코드·토큰, 운동 상세는 보내지 않는다.
+- Cloud Logging 기반 집계는 신규 외부 SDK 없이 서버 건수와 오류 진단을 우선 제공하며 로그 용량·보존·IAM을 관리해야 한다. 단계별 총건수는 동시 이용자의 코호트 이탈률을 측정할 수 없다. GA4는 퍼널 기능이 있으나 수집 설정과 쿠키·보존 검토가 필요하다. Plausible은 쿠키 없는 집계와 Business 플랜의 퍼널을 제공하며 구독과 외부 처리 검토가 필요하다. Sentry는 오류 분류·릴리스 추적에 적합하며 발생량과 스크러빙을 관리해야 한다. [Cloud Logging](https://cloud.google.com/products/observability/pricing) · [GA4](https://support.google.com/analytics/answer/9327974) · [Plausible](https://plausible.io/docs/funnel-analysis) · [Sentry](https://sentry.io/pricing/)
+- 승인 후 비운영에서 합성 전환 성공·중도 이탈·실패·중복 요청·네트워크 단절을 주입한다. 이벤트 수, 중복 미집계, 오류와 요청 ID의 대조, 개인정보 테스트 문자열 미기록을 확인한다. 출시 기준에 코호트 연결이 필요하면 식별 방식·보존 기간·열람 권한과 실험 범위를 별도 승인한다.
+
 | 추적 정보 | 내용 |
 | --- | --- |
 | 문서 상태 | 후속 조사 기록·검토용 Draft |
